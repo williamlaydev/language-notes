@@ -10,8 +10,8 @@ type TranslationHandler struct {
 }
 
 type postTranslationRequestBody struct {
-	English         string `json:"english"`
-	DesiredLanguage string `json:"language"`
+	English  string `json:"english"`
+	Language string `json:"language"`
 }
 
 func NewTranslationHandler() *TranslationHandler {
@@ -30,7 +30,7 @@ func (h *TranslationHandler) PostTranslate(w http.ResponseWriter, r *http.Reques
 
 	s := service.NewTranslationService()
 
-	res, err := s.TranslateEnglishToLanguage(reqBody.English, reqBody.DesiredLanguage)
+	res, err := s.TranslateEnglishToLanguage(reqBody.English, reqBody.Language)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

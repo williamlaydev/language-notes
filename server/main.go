@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 )
 
 func init() {
@@ -22,9 +23,10 @@ func init() {
 func main() {
 	mux := http.NewServeMux()
 
+	corsEnabled := cors.Default().Handler(mux)
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: mux,
+		Handler: corsEnabled,
 	}
 
 	mux.HandleFunc("POST /translate", handlers.NewTranslationHandler().PostTranslate)

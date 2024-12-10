@@ -3,6 +3,7 @@ package translator
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -49,9 +50,9 @@ func NewChatGptClient() *ChatGpt {
 	return &ChatGpt{}
 }
 
-func (c *ChatGpt) Translate(english string, desiredLanguage string) (*TranslatedWord, error) {
-	log.Print("Translate begins")
-	body := newChatGptRequest(english, desiredLanguage)
+func (c *ChatGpt) Translate(english string, language string) (*TranslatedWord, error) {
+	log.Printf("Translate %s", english)
+	body := newChatGptRequest(english, language)
 	j, err := json.Marshal(body)
 
 	if err != nil {
@@ -80,20 +81,18 @@ func (c *ChatGpt) Translate(english string, desiredLanguage string) (*Translated
 	var chatGptResponse ChatGptResponse
 
 	if res.StatusCode != http.StatusOK {
-		a, _ := io.ReadAll(res.Body)
-		log.Printf("aiResponse: %v\n", string(a))
+		errBody, _ := io.ReadAll(res.Body)
+		return &TranslatedWord{}, errors.New(string(errBody))
 	} else {
 		err = json.NewDecoder(res.Body).Decode(&chatGptResponse)
 		if err != nil {
 			return &TranslatedWord{}, err
 		}
-
-		log.Printf("aiResponse: %v\n", chatGptResponse)
 	}
 
 	translated := &TranslatedWord{
 		English:  english,
-		Language: desiredLanguage,
+		Language: language,
 	}
 
 	content := chatGptResponse.Choices[0].Message.Content
@@ -107,7 +106,7 @@ func (c *ChatGpt) Translate(english string, desiredLanguage string) (*Translated
 
 func newChatGptRequest(english string, language string) *chatGptRequest {
 	// Query specifics of GPT
-	roleDescription := "you are a translator, translate" + english + "to " + language + " and return only the translated word and its meaning"
+	roleDescription := "You are a professional translator. Please translate the word " + english + " to " + language + ". Return only the translated word in " + language + " and its meaning."
 
 	messages := [2]*message{
 		{Role: "system", Content: roleDescription},
