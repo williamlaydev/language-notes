@@ -106,7 +106,7 @@ func (c *ChatGpt) Translate(english string, language string) (*TranslatedWord, e
 
 func newChatGptRequest(english string, language string) *chatGptRequest {
 	// Query specifics of GPT
-	roleDescription := "You are a professional translator. Please translate the word " + english + " to " + language + ". Return only the translated word in " + language + " and its meaning."
+	roleDescription := "You are a professional translator. Please translate the word " + english + " to " + language + ". Return only the translated word in " + language + " and its meaning. If you can't do it return Null for all"
 
 	messages := [2]*message{
 		{Role: "system", Content: roleDescription},
