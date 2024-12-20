@@ -43,7 +43,6 @@ function App() {
         created_at: "ttestdate", 
         set_id: 123
       }, ...data])
-
       return data;
     } catch (error) {
       console.error("Error fetching translation cards:", error);
