@@ -5,6 +5,7 @@ type TranslationCardProps = {
     meaning: string
     translated: string
     language: string
+    refreshPageFunc: (setId: number) => void
 }
 
 type TranslatedInfo = {
@@ -36,6 +37,7 @@ function TranslationCard(props: TranslationCardProps) {
                     meaning: res.meaning,
                     translated: res.translated
                 }))
+                props.refreshPageFunc(1)
             }
         }
     }
@@ -50,6 +52,7 @@ function TranslationCard(props: TranslationCardProps) {
                     meaning: res.meaning,
                     translated: res.translated
                 }))
+                props.refreshPageFunc(1)
             }
         }
     }
