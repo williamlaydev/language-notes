@@ -5,6 +5,7 @@ type TranslationCardProps = {
     meaning: string
     translated: string
     language: string
+    refreshPageFunc: (setId: number) => void
 }
 
 type TranslatedInfo = {
@@ -27,29 +28,30 @@ function TranslationCard(props: TranslationCardProps) {
     })
 
     const handleUnfocus = async () => {
-        if (props.english) {
-            if (!isTranslated) {
-                const res = await translateEnglishWord(translatedInfo.english, translatedInfo.language)
-                setIsTranslated(true)
-                setTranslatedInfo(prev => ({
-                    ...prev,
-                    meaning: res.meaning,
-                    translated: res.translated
-                }))
+        if (props.english && !isTranslated) {
+            try {
+                await translateEnglishWord(translatedInfo.english, translatedInfo.language);
+                setIsTranslated(true);
+                // Trigger refresh after successful translation
+                console.log("Refreshing")
+                props.refreshPageFunc(1);
+            } catch (error) {
+                console.error("Error translating the word:", error);
             }
         }
     }
 
     const handleEnter = async (e) => {
-        if (e.key === "Enter") {
-            if (!isTranslated) {
-                const res = await translateEnglishWord(translatedInfo.english, translatedInfo.language)
-                setIsTranslated(true)
-                setTranslatedInfo(prev => ({
-                    ...prev,
-                    meaning: res.meaning,
-                    translated: res.translated
-                }))
+        if (e.key === "Enter" && !isTranslated) {
+            try {
+                await translateEnglishWord(translatedInfo.english, translatedInfo.language);
+                setIsTranslated(true);
+                props.refreshPageFunc(1);
+                // Trigger refresh after successful translation
+                console.log("Refreshing")
+                
+            } catch (error) {
+                console.error("Error translating the word:", error);
             }
         }
     }
@@ -77,8 +79,8 @@ function TranslationCard(props: TranslationCardProps) {
     )
 }
 
-const translateEnglishWord = async (english: string, language: string): Promise<{ translated: string; meaning: string }> => {
-    const response = await fetch("http://localhost:8080/translate", {
+const translateEnglishWord = async (english: string, language: string) => {
+    await fetch("http://localhost:8080/translate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -88,11 +90,13 @@ const translateEnglishWord = async (english: string, language: string): Promise<
         language: language,
       }),
     });
-    const data = await response.json();
-    return {
-      translated: data.translated,
-      meaning: data.meaning,
-    };
+    // TODO: Response handling currently no response from backend
+    // const data = await response.json();
+    // console.log(data)
+    // return {
+    //   translated: data.translated,
+    //   meaning: data.meaning,
+    // };
   };
 
 export default TranslationCard

@@ -56,13 +56,13 @@ func (c *ChatGpt) Translate(english string, language string) (*TranslatedWord, e
 	j, err := json.Marshal(body)
 
 	if err != nil {
-		return &TranslatedWord{}, err
+		return nil, err
 	}
 
 	req, err := http.NewRequest(http.MethodPost, "https://api.openai.com/v1/chat/completions", bytes.NewBuffer(j))
 
 	if err != nil {
-		return &TranslatedWord{}, err
+		return nil, err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -73,7 +73,7 @@ func (c *ChatGpt) Translate(english string, language string) (*TranslatedWord, e
 	res, err := client.Do(req)
 
 	if err != nil {
-		return &TranslatedWord{}, err
+		return nil, err
 	}
 
 	defer res.Body.Close()
@@ -82,11 +82,11 @@ func (c *ChatGpt) Translate(english string, language string) (*TranslatedWord, e
 
 	if res.StatusCode != http.StatusOK {
 		errBody, _ := io.ReadAll(res.Body)
-		return &TranslatedWord{}, errors.New(string(errBody))
+		return nil, errors.New(string(errBody))
 	} else {
 		err = json.NewDecoder(res.Body).Decode(&chatGptResponse)
 		if err != nil {
-			return &TranslatedWord{}, err
+			return nil, err
 		}
 	}
 
@@ -98,7 +98,7 @@ func (c *ChatGpt) Translate(english string, language string) (*TranslatedWord, e
 	content := chatGptResponse.Choices[0].Message.Content
 
 	if err := json.Unmarshal([]byte(content), &translated); err != nil {
-		return &TranslatedWord{}, err
+		return nil, err
 	}
 
 	return translated, nil

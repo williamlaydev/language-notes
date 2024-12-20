@@ -1,18 +1,58 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 import TranslationCard from './components/TranslationCard'
-import { translationCards } from './database'
+
+type TranslationCard = {
+  id: number;
+  creator_id: string; // UUID
+  english: string;
+  meaning: string;
+  translated: string;
+  created_at: string; // ISO date string
+  set_id: number;
+  language: string;
+};
 
 function App() {
-  let cards = [
-    {
-      english: "",
-      meaning: "",
-      translated: "",
-      language: "chinese"
-    }, 
-    ...translationCards
-  ]
+  const [cards, setCards] = useState<TranslationCard[]>([])
+
+  const fetchTranslationCards = async (setId: number) => {
+    const url = `http://localhost:8080/translation-cards?setId=${setId}`;
+  
+    try {
+      const response = await fetch(url, {
+        method: "GET", 
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+
+      setCards([{
+        id: 1,
+        english: "",
+        meaning: "",
+        translated: "",
+        language: "chinese", 
+        creator_id: "123",
+        created_at: "ttestdate", 
+        set_id: 123
+      }, ...data])
+      return data;
+    } catch (error) {
+      console.error("Error fetching translation cards:", error);
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    fetchTranslationCards(1)
+  }, [])
 
   return (
     <>
@@ -33,6 +73,7 @@ function App() {
                   english=""
                   meaning=""
                   translated=""
+                  refreshPageFunc={fetchTranslationCards}
                 />
               ) : (
                 <TranslationCard
@@ -41,6 +82,7 @@ function App() {
                   english={card.english}
                   meaning={card.meaning}
                   translated={card.translated}
+                  refreshPageFunc={fetchTranslationCards}
                 />
               );
             })}
@@ -51,5 +93,6 @@ function App() {
   );
   
 }
+
 
 export default App
