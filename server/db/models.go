@@ -8,6 +8,22 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Book struct {
+	ID        int64              `json:"id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	Name      string             `json:"name"`
+	Language  string             `json:"language"`
+	CreatorID pgtype.UUID        `json:"creator_id"`
+}
+
+type Page struct {
+	ID        int64              `json:"id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	CreatorID pgtype.UUID        `json:"creator_id"`
+	Name      string             `json:"name"`
+	BookID    int64              `json:"book_id"`
+}
+
 type Set struct {
 	ID        int64       `json:"id"`
 	Name      string      `json:"name"`

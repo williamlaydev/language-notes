@@ -60,9 +60,10 @@ func (h *TranslationHandler) PostTranslate(w http.ResponseWriter, r *http.Reques
 	// TODO: Maybe add a return body so that we know what was added?
 }
 
+// GET /set/{setId}/translation-cards
 func (h *TranslationHandler) GetTranslationCards(w http.ResponseWriter, r *http.Request) {
 	log.Print("Get Translation Cards")
-	setId, err := strconv.Atoi(r.URL.Query().Get("setId"))
+	setId, err := strconv.Atoi(r.PathValue("setId"))
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

@@ -17,3 +17,25 @@ INSERT INTO translation_cards (
     $1, $2, $3, $4, $5, $6
 )
 RETURNING *;
+
+-- Sets --
+
+-- name: RetrieveSetsForPage :many
+SELECT s.id, s.name, s.page_id, s.creator_id
+FROM sets s
+JOIN
+    page p ON s.page_id = p.id
+JOIN Users u ON s.creator_id = u.uuid
+WHERE
+    s.page_id = $1 AND s.creator_id = $2;
+
+-- Pages --
+
+-- name: RetrievePagesForBook :many
+SELECT p.id, p.name, p.book_id, p.creator_id
+FROM page p
+JOIN
+    book b ON b.language = $1
+JOIN Users u ON p.creator_id = u.uuid
+WHERE
+    p.creator_id = $2;

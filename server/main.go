@@ -40,14 +40,14 @@ func main() {
 	}
 
 	mux.HandleFunc("POST /translate", handlers.NewTranslationHandler(connPool).PostTranslate)
-	mux.HandleFunc("GET /translation-cards", handlers.NewTranslationHandler(connPool).GetTranslationCards)
-
+	mux.HandleFunc("GET /set/{setId}/translation-cards", handlers.NewTranslationHandler(connPool).GetTranslationCards)
+	mux.HandleFunc("GET /page/{pageId}/sets", handlers.NewPageHandler(connPool).GetAllSets)
+	mux.HandleFunc("GET /book/{userId}/pages", handlers.NewBookHandler(connPool).GetAllPages)
 	log.Print("Server started")
 	if err := server.ListenAndServe(); err != nil || err != http.ErrServerClosed {
 		log.Fatalf("Server failed: %v", err)
 	}
 }
-
 func createDbConnection() *pgxpool.Pool {
 	config, err := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
 	config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec

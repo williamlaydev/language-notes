@@ -52,6 +52,97 @@ func (q *Queries) CreateTranslationCard(ctx context.Context, arg CreateTranslati
 	return i, err
 }
 
+const retrievePagesForBook = `-- name: RetrievePagesForBook :many
+
+SELECT p.id, p.name, p.book_id, p.creator_id
+FROM page p
+JOIN
+    book b ON b.language = $1
+JOIN Users u ON p.creator_id = u.uuid
+WHERE
+    p.creator_id = $2
+`
+
+type RetrievePagesForBookParams struct {
+	Language  string      `json:"language"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+}
+
+type RetrievePagesForBookRow struct {
+	ID        int64       `json:"id"`
+	Name      string      `json:"name"`
+	BookID    int64       `json:"book_id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+}
+
+// Pages --
+func (q *Queries) RetrievePagesForBook(ctx context.Context, arg RetrievePagesForBookParams) ([]RetrievePagesForBookRow, error) {
+	rows, err := q.db.Query(ctx, retrievePagesForBook, arg.Language, arg.CreatorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RetrievePagesForBookRow
+	for rows.Next() {
+		var i RetrievePagesForBookRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.BookID,
+			&i.CreatorID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const retrieveSetsForPage = `-- name: RetrieveSetsForPage :many
+
+SELECT s.id, s.name, s.page_id, s.creator_id
+FROM sets s
+JOIN
+    page p ON s.page_id = p.id
+JOIN Users u ON s.creator_id = u.uuid
+WHERE
+    s.page_id = $1 AND s.creator_id = $2
+`
+
+type RetrieveSetsForPageParams struct {
+	PageID    int64       `json:"page_id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+}
+
+// Sets --
+func (q *Queries) RetrieveSetsForPage(ctx context.Context, arg RetrieveSetsForPageParams) ([]Set, error) {
+	rows, err := q.db.Query(ctx, retrieveSetsForPage, arg.PageID, arg.CreatorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Set
+	for rows.Next() {
+		var i Set
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.PageID,
+			&i.CreatorID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const retrieveTranslationCardsForSet = `-- name: RetrieveTranslationCardsForSet :many
 
 SELECT tc.id, tc.creator_id, tc.english, tc.meaning, tc.translated, tc.created_at, tc.set_id, tc.language
