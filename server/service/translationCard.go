@@ -37,7 +37,7 @@ func (s *TranslationCard) CreateNewTranslationCard(english string, language stri
 
 	uuidTemp, _ := uuid.Parse("f47c1a1b-2e71-4960-878d-cd70db13264e")
 	p := db.CreateTranslationCardParams{
-		English:    translatedWord.English,
+		English:    translatedWord.EnglishWithTones,
 		Meaning:    translatedWord.Meaning,
 		Translated: translatedWord.Translated,
 		SetID:      1,

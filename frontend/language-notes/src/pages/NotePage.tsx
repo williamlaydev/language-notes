@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
-import './App.css'
-import TranslationCard from './components/TranslationCard'
+import { useState } from 'react'
+
+import IncompleteTranslationCard from '../components/IncompleteTranslationCard'
+import CompletedTranslationCard from '../components/CompletedTranslationCard'
+import FileExplorer from '../components/fileExplorer/FileExplorer'
 
 type TranslationCard = {
   id: number;
@@ -13,11 +15,11 @@ type TranslationCard = {
   language: string;
 };
 
-function App() {
+function NotePage() {
   const [cards, setCards] = useState<TranslationCard[]>([])
 
   const fetchTranslationCards = async (setId: number) => {
-    const url = `http://localhost:8080/translation-cards?setId=${setId}`;
+    const url = `http://localhost:8080/set/${setId}/translation-cards`;
   
     try {
       const response = await fetch(url, {
@@ -33,16 +35,7 @@ function App() {
   
       const data = await response.json();
 
-      setCards([{
-        id: 1,
-        english: "",
-        meaning: "",
-        translated: "",
-        language: "chinese", 
-        creator_id: "123",
-        created_at: "ttestdate", 
-        set_id: 123
-      }, ...data])
+      setCards([...data])
       return data;
     } catch (error) {
       console.error("Error fetching translation cards:", error);
@@ -50,39 +43,34 @@ function App() {
     }
   };
 
-  useEffect(() => {
-    fetchTranslationCards(1)
-  }, [])
+  const handleSetSelection = (setId: number) => {
+    console.log(`getting cards for set ${setId}`)
+    fetchTranslationCards(setId || 0)
+  }
 
   return (
     <>
-      <div className="flex flex-row w-full h-screen px-4 py-4">
-        {/* Left Section: 40% */}
-        <div className="w-2/5 bg-gray-100 p-4">
-          <h2 className="text-lg font-bold">Nav area</h2>
+      <div className="flex flex-row w-full h-screen">
+        {/* FileNav */}
+        <div className="w-1/6">
+          <FileExplorer setChosenSetIdCallback={handleSetSelection}/>
         </div>
   
         {/* Right Section: 60% */}
         <div className="w-3/5 p-4">
           <div className="grid grid-cols-6 grid-rows-5 gap-4">
+              <IncompleteTranslationCard
+                language={"chinese"}
+                refreshPageFunc={fetchTranslationCards}
+              />
             {cards.map((card, index) => {
-              return card.english === "" ? (
-                <TranslationCard
-                  key={index}
-                  language={card.language}
-                  english=""
-                  meaning=""
-                  translated=""
-                  refreshPageFunc={fetchTranslationCards}
-                />
-              ) : (
-                <TranslationCard
+              return (
+                <CompletedTranslationCard
                   key={index}
                   language={card.language}
                   english={card.english}
                   meaning={card.meaning}
                   translated={card.translated}
-                  refreshPageFunc={fetchTranslationCards}
                 />
               );
             })}
@@ -95,4 +83,4 @@ function App() {
 }
 
 
-export default App
+export default NotePage

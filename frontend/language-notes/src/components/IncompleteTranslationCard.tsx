@@ -1,55 +1,51 @@
 import { useState } from "react"
 
-type TranslationCardProps = {
-    english: string
-    meaning: string
-    translated: string
+type IncompleteTranslationCardProps = {
     language: string
     refreshPageFunc: (setId: number) => void
 }
 
 type TranslatedInfo = {
     english: string
-    meaning: string
-    translated: string
     language: string
+    isTranslated: boolean
 }
 
-function TranslationCard(props: TranslationCardProps) {
+function IncompleteTranslationCard(props: IncompleteTranslationCardProps) {
     const [translatedInfo, setTranslatedInfo] = useState<TranslatedInfo>({
-        english: props.english,
-        meaning: props.meaning,
-        translated: props.translated,
-        language: props.language
+        english: "",
+        language: props.language,
+        isTranslated: false
     })
 
-    const [isTranslated, setIsTranslated] = useState(() => {
-        return props.english ? true : false
-    })
-
-    const handleUnfocus = async () => {
-        if (props.english && !isTranslated) {
-            try {
-                await translateEnglishWord(translatedInfo.english, translatedInfo.language);
-                setIsTranslated(true);
-                // Trigger refresh after successful translation
-                console.log("Refreshing")
-                props.refreshPageFunc(1);
-            } catch (error) {
-                console.error("Error translating the word:", error);
-            }
-        }
-    }
+    // TODO: Validate if should be done
+    // const handleUnfocus = async () => {
+    //     if (translatedInfo.english) {
+    //         try {
+    //             await translateEnglishWord(translatedInfo.english, translatedInfo.language);
+    //             // Trigger refresh after successful translation
+    //             setTranslatedInfo(prev => ({
+    //                 ...prev,
+    //                 isTranslated: true
+    //             }))
+    //             props.refreshPageFunc(1);
+    //         } catch (error) {
+    //             console.error("Error translating the word:", error);
+    //         }
+    //     }
+        
+    // }
 
     const handleEnter = async (e) => {
-        if (e.key === "Enter" && !isTranslated) {
+        if (e.key === "Enter" && translatedInfo.english) {
             try {
                 await translateEnglishWord(translatedInfo.english, translatedInfo.language);
-                setIsTranslated(true);
+                setTranslatedInfo(prev => ({
+                    ...prev,
+                    isTranslated: true
+                }))
                 props.refreshPageFunc(1);
-                // Trigger refresh after successful translation
-                console.log("Refreshing")
-                
+                // Trigger refresh after successful translation          
             } catch (error) {
                 console.error("Error translating the word:", error);
             }
@@ -58,23 +54,17 @@ function TranslationCard(props: TranslationCardProps) {
     
     return (
         <div className="max-w-sm p-4 bg-yellow-100 border border-yellow-300 shadow-md text-center">
-            {
-                // Handle if translated
-                isTranslated ? <h3 className="text-lg font-medium text-gray-800">{translatedInfo.english}</h3>
-                : <input 
+            <input 
                     className="w-full p-2 mb-4 bg-transparent border-b-2 border-gray-300 focus:outline-none focus:border-yellow-500"
                     type="text"
                     onChange={(e) => setTranslatedInfo(prev => ({
                         ...prev,
                         english: e.target.value 
                     }))}
-                    onBlur={() => handleUnfocus()}
+                    // onBlur={() => handleUnfocus()}
                     onKeyDown={(e) => handleEnter(e)}
                     placeholder={translatedInfo.english}
-                />
-            }
-            <h3 className="text-lg font-medium text-gray-800" >{translatedInfo.translated}</h3>
-            <h3 className="text-sm text-gray-600">{translatedInfo.meaning}</h3>
+            />
         </div>
     )
 }
@@ -99,4 +89,4 @@ const translateEnglishWord = async (english: string, language: string) => {
     // };
   };
 
-export default TranslationCard
+export default IncompleteTranslationCard

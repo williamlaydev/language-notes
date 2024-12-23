@@ -1,9 +1,13 @@
-import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
+import NotePage from './pages/NotePage'
+import './index.css'
 import './output.css'
+import { BrowserRouter, Routes, Route } from "react-router"
+
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+  <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<NotePage />} />
+      </Routes>
+  </BrowserRouter>
 )
