@@ -11,6 +11,59 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createSinglePage = `-- name: CreateSinglePage :one
+INSERT INTO pages (
+    name, book_id, creator_id
+) VALUES (
+    $1, $2, $3
+) RETURNING id, created_at, creator_id, name, book_id
+`
+
+type CreateSinglePageParams struct {
+	Name      string      `json:"name"`
+	BookID    int64       `json:"book_id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+}
+
+func (q *Queries) CreateSinglePage(ctx context.Context, arg CreateSinglePageParams) (Page, error) {
+	row := q.db.QueryRow(ctx, createSinglePage, arg.Name, arg.BookID, arg.CreatorID)
+	var i Page
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.CreatorID,
+		&i.Name,
+		&i.BookID,
+	)
+	return i, err
+}
+
+const createSingleSet = `-- name: CreateSingleSet :one
+INSERT INTO sets (
+    name, page_id, creator_id
+) VALUES (
+    $1, $2, $3
+) RETURNING id, name, page_id, creator_id
+`
+
+type CreateSingleSetParams struct {
+	Name      string      `json:"name"`
+	PageID    int64       `json:"page_id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+}
+
+func (q *Queries) CreateSingleSet(ctx context.Context, arg CreateSingleSetParams) (Set, error) {
+	row := q.db.QueryRow(ctx, createSingleSet, arg.Name, arg.PageID, arg.CreatorID)
+	var i Set
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.PageID,
+		&i.CreatorID,
+	)
+	return i, err
+}
+
 const createTranslationCard = `-- name: CreateTranslationCard :one
 INSERT INTO translation_cards (
     english, meaning, translated, set_id, language, creator_id
@@ -55,7 +108,7 @@ func (q *Queries) CreateTranslationCard(ctx context.Context, arg CreateTranslati
 const retrievePagesForBook = `-- name: RetrievePagesForBook :many
 
 SELECT p.id, p.name, p.book_id, p.creator_id
-FROM page p
+FROM pages p
 JOIN
     book b ON b.language = $1
 JOIN Users u ON p.creator_id = u.uuid
@@ -106,7 +159,7 @@ const retrieveSetsForPage = `-- name: RetrieveSetsForPage :many
 SELECT s.id, s.name, s.page_id, s.creator_id
 FROM sets s
 JOIN
-    page p ON s.page_id = p.id
+    pages p ON s.page_id = p.id
 JOIN Users u ON s.creator_id = u.uuid
 WHERE
     s.page_id = $1 AND s.creator_id = $2

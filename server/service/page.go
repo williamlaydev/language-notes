@@ -35,3 +35,23 @@ func (s *Page) RetrieveSetsForPage(userId string, pageId int) ([]db.Set, error) 
 
 	return res, nil
 }
+
+func (s *Page) CreateNewPage(name string, bookId int64) error {
+	store := db.New(s.conn)
+
+	uuidTemp, _ := uuid.Parse("f47c1a1b-2e71-4960-878d-cd70db13264e")
+	p := db.CreateSinglePageParams{
+		Name:      name,
+		BookID:    bookId,
+		CreatorID: pgtype.UUID{Bytes: uuidTemp, Valid: true},
+	}
+
+	// TODO: Handle return
+	_, err := store.CreateSinglePage(s.context, p)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

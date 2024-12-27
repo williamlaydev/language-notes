@@ -14,6 +14,11 @@ type PageHandler struct {
 	conn *pgxpool.Pool
 }
 
+type PostPageRequestBody struct {
+	Name   string `json:"name"`
+	BookID int64  `json:"bookId"`
+}
+
 func NewPageHandler(p *pgxpool.Pool) *PageHandler {
 	return &PageHandler{conn: p}
 }
@@ -44,4 +49,18 @@ func (h *PageHandler) GetAllSets(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(res)
+}
+
+func (h *PageHandler) PostPage(w http.ResponseWriter, r *http.Request) {
+	log.Print("Create new page")
+
+	var reqBody *PostPageRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	// TODO: Validate the request
+	// TODO: Fix userID
 }
