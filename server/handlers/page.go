@@ -61,6 +61,15 @@ func (h *PageHandler) PostPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s := service.NewPageService(h.conn, r.Context())
+
+	if err := s.CreateNewPage(reqBody.Name, reqBody.BookID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
 	// TODO: Validate the request
 	// TODO: Fix userID
 }
