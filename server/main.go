@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"languageNotes/handlers"
+	"languageNotes/middlewares"
 	"log"
 	"net/http"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
+	"go.uber.org/zap"
 )
 
 func init() {
@@ -25,19 +27,37 @@ func init() {
 	if os.Getenv("DATABASE_URL") == "" {
 		log.Fatal("env var DATABASE_URL is missing.")
 	}
+
+	if os.Getenv("AUTH_SIGN_KEY") == "" {
+		log.Fatal("env var AUTH_SIGN_KEY is missing.")
+	}
+
+	if os.Getenv("LOG_ENV") != "develop" && os.Getenv("LOG_ENV") != "prod" {
+		log.Fatal("env var LOG_ENV is not develop or prod.")
+	}
+
+	// Set global logger
+	var logger *zap.Logger
+	if os.Getenv("LOG_ENV") == "develop" {
+		logger = zap.Must(zap.NewDevelopment())
+	} else if os.Getenv("LOG_ENV") == "prod" {
+		logger = zap.Must(zap.NewProduction())
+	}
+
+	zap.ReplaceGlobals(logger)
+
+	defer logger.Sync()
 }
 
 func main() {
+	// Logger initiation
 	mux := http.NewServeMux()
 
 	connPool := createDbConnection()
 	defer connPool.Close()
 
-	corsEnabled := cors.Default().Handler(mux)
-	server := &http.Server{
-		Addr:    ":8080",
-		Handler: corsEnabled,
-	}
+	// Register routes
+	mux.HandleFunc("GET /health", handlers.NewHealthCheckHandler().Ping)
 
 	mux.HandleFunc("POST /translate", handlers.NewTranslationHandler(connPool).PostTranslate)
 	mux.HandleFunc("POST /set", handlers.NewSetHandler(connPool).PostSet)
@@ -45,11 +65,27 @@ func main() {
 	mux.HandleFunc("GET /set/{setId}/translation-cards", handlers.NewTranslationHandler(connPool).GetTranslationCards)
 	mux.HandleFunc("GET /page/{pageId}/sets", handlers.NewPageHandler(connPool).GetAllSets)
 	mux.HandleFunc("GET /book/{userId}/pages", handlers.NewBookHandler(connPool).GetAllPages)
-	log.Print("Server started")
+
+	// Middlewares active
+	middlewaresList := []middlewares.Middleware{
+		middlewares.RequestID(),
+	}
+
+	wrappedMux := middlewares.ApplyMiddleware(mux, middlewaresList...)
+
+	corsEnabled := cors.Default().Handler(wrappedMux)
+
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: corsEnabled,
+	}
+
+	zap.L().Info("Server started")
 	if err := server.ListenAndServe(); err != nil || err != http.ErrServerClosed {
 		log.Fatalf("Server failed: %v", err)
 	}
 }
+
 func createDbConnection() *pgxpool.Pool {
 	config, err := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
 	config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
