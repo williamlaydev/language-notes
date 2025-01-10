@@ -69,6 +69,7 @@ func main() {
 	// Middlewares active
 	middlewaresList := []middlewares.Middleware{
 		middlewares.RequestID(),
+		middlewares.UserJwtAuthentication([]byte(os.Getenv("AUTH_SIGN_KEY"))),
 	}
 
 	wrappedMux := middlewares.ApplyMiddleware(mux, middlewaresList...)
