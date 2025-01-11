@@ -7,24 +7,26 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 )
 
 type Page struct {
 	conn    *pgxpool.Pool
 	context context.Context
+	logger  *zap.Logger
 }
 
-func NewPageService(p *pgxpool.Pool, c context.Context) *Page {
-	return &Page{conn: p, context: c}
+func NewPageService(p *pgxpool.Pool, c context.Context, l *zap.Logger) *Page {
+	return &Page{conn: p, context: c, logger: l}
 }
 
-func (s *Page) RetrieveSetsForPage(userId string, pageId int) ([]db.Set, error) {
+func (s *Page) RetrieveSetsForPage(userID string, pageId int) ([]db.Set, error) {
 	// Query database for required data
 	store := db.New(s.conn)
-	uuidTemp, _ := uuid.Parse("f47c1a1b-2e71-4960-878d-cd70db13264e")
+	u, _ := uuid.Parse(userID)
 	p := db.RetrieveSetsForPageParams{
 		PageID:    int64(pageId),
-		CreatorID: pgtype.UUID{Bytes: uuidTemp, Valid: true},
+		CreatorID: pgtype.UUID{Bytes: u, Valid: true},
 	}
 
 	res, err := store.RetrieveSetsForPage(s.context, p)
@@ -36,14 +38,14 @@ func (s *Page) RetrieveSetsForPage(userId string, pageId int) ([]db.Set, error) 
 	return res, nil
 }
 
-func (s *Page) CreateNewPage(name string, bookId int64) error {
+func (s *Page) CreateNewPage(userID string, name string, bookId int64) error {
 	store := db.New(s.conn)
 
-	uuidTemp, _ := uuid.Parse("f47c1a1b-2e71-4960-878d-cd70db13264e")
+	u, _ := uuid.Parse(userID)
 	p := db.CreateSinglePageParams{
 		Name:      name,
 		BookID:    bookId,
-		CreatorID: pgtype.UUID{Bytes: uuidTemp, Valid: true},
+		CreatorID: pgtype.UUID{Bytes: u, Valid: true},
 	}
 
 	// TODO: Handle return

@@ -3,11 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"languageNotes/service"
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 )
 
 type PageHandler struct {
@@ -25,7 +25,27 @@ func NewPageHandler(p *pgxpool.Pool) *PageHandler {
 
 // GET /page/{pageId}/sets
 func (h *PageHandler) GetAllSets(w http.ResponseWriter, r *http.Request) {
-	log.Print("Get all sets")
+	// Create a logger
+	logger, err := createLoggerForRequest(r)
+
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Retrieve UUID from context
+	uuid, err := retrieveUUIDfromContext(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Entry log
+	logger.Info(
+		"GetAllSets",
+		zap.String("uuid", uuid),
+	)
+
 	pageId, err := strconv.Atoi(r.PathValue("pageId"))
 
 	if err != nil {
@@ -37,9 +57,9 @@ func (h *PageHandler) GetAllSets(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: Validate request
 
-	s := service.NewPageService(h.conn, r.Context())
+	s := service.NewPageService(h.conn, r.Context(), logger)
 
-	res, err := s.RetrieveSetsForPage("f47c1a1b-2e71-4960-878d-cd70db13264e", pageId)
+	res, err := s.RetrieveSetsForPage(uuid, pageId)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -52,7 +72,26 @@ func (h *PageHandler) GetAllSets(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PageHandler) PostPage(w http.ResponseWriter, r *http.Request) {
-	log.Print("Create new page")
+	// Create a logger
+	logger, err := createLoggerForRequest(r)
+
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Retrieve UUID from context
+	uuid, err := retrieveUUIDfromContext(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Entry log
+	logger.Info(
+		"PostPage",
+		zap.String("uuid", uuid),
+	)
 
 	var reqBody *PostPageRequestBody
 
@@ -61,9 +100,9 @@ func (h *PageHandler) PostPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s := service.NewPageService(h.conn, r.Context())
+	s := service.NewPageService(h.conn, r.Context(), logger)
 
-	if err := s.CreateNewPage(reqBody.Name, reqBody.BookID); err != nil {
+	if err := s.CreateNewPage(uuid, reqBody.Name, reqBody.BookID); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -71,5 +110,4 @@ func (h *PageHandler) PostPage(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	// TODO: Validate the request
-	// TODO: Fix userID
 }

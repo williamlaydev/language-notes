@@ -3,11 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"languageNotes/service"
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 )
 
 type TranslationHandler struct {
@@ -34,7 +34,27 @@ func NewTranslationHandler(p *pgxpool.Pool) *TranslationHandler {
 // This API will translate an English version of a word to the desired language, then it will add the
 // respective data to the database
 func (h *TranslationHandler) PostTranslate(w http.ResponseWriter, r *http.Request) {
-	log.Print("Create new card")
+	// Create a logger
+	logger, err := createLoggerForRequest(r)
+
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Retrieve UUID from context
+	uuid, err := retrieveUUIDfromContext(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Entry log
+	logger.Info(
+		"PostTranslate",
+		zap.String("uuid", uuid),
+	)
+
 	var reqBody *postTranslationRequestBody
 
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
@@ -42,13 +62,11 @@ func (h *TranslationHandler) PostTranslate(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// TODO: Authenticate user
-
 	// TODO: Validate request
 
-	s := service.NewTranslationService(h.conn, r.Context())
+	s := service.NewTranslationService(h.conn, r.Context(), logger)
 
-	err := s.CreateNewTranslationCard(reqBody.English, reqBody.Language)
+	err = s.CreateNewTranslationCard(uuid, reqBody.English, reqBody.Language)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -62,20 +80,41 @@ func (h *TranslationHandler) PostTranslate(w http.ResponseWriter, r *http.Reques
 
 // GET /set/{setId}/translation-cards
 func (h *TranslationHandler) GetTranslationCards(w http.ResponseWriter, r *http.Request) {
-	log.Print("Get Translation Cards")
-	setId, err := strconv.Atoi(r.PathValue("setId"))
+	// Create a logger
+	logger, err := createLoggerForRequest(r)
+
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Retrieve UUID from context
+	uuid, err := retrieveUUIDfromContext(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Entry log
+	logger.Info(
+		"GetTranslationCards",
+		zap.String("uuid", uuid),
+	)
+
+	// Retrieve values from the path
+	setID, err := strconv.Atoi(r.PathValue("setId"))
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	// TODO: Authenticate user
 
 	// TODO: Validate request
 
-	s := service.NewTranslationService(h.conn, r.Context())
+	// Create new service and call the relevant method
+	s := service.NewTranslationService(h.conn, r.Context(), logger)
 
-	res, err := s.RetrieveTransactionCards("f47c1a1b-2e71-4960-878d-cd70db13264e", setId)
+	res, err := s.RetrieveTransactionCards(uuid, setID)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

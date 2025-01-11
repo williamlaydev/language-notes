@@ -3,10 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"languageNotes/service"
-	"log"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 )
 
 type BookHandler struct {
@@ -18,22 +18,39 @@ func NewBookHandler(p *pgxpool.Pool) *BookHandler {
 }
 
 func (h *BookHandler) GetAllPages(w http.ResponseWriter, r *http.Request) {
-	log.Print("Get All Pages")
-	// TODO: MUST CHANGE THIS FROM PATH VALUEUSER ID
-	userId := r.PathValue("userId")
+	// Create a logger
+	logger, err := createLoggerForRequest(r)
+
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Retrieve UUID from context
+	uuid, err := retrieveUUIDfromContext(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Entry log
+	logger.Info(
+		"GetAllPages",
+		zap.String("uuid", uuid),
+	)
+
 	language := r.URL.Query().Get("language")
 
 	// if err != nil {
 	// 	http.Error(w, err.Error(), http.StatusBadRequest)
 	// 	return
 	// }
-	// TODO: Authenticate user
 
 	// TODO: Validate request
 
-	s := service.NewBookService(h.conn, r.Context())
+	s := service.NewBookService(h.conn, r.Context(), logger)
 
-	res, err := s.RetrievePagesForBook(userId, language)
+	res, err := s.RetrievePagesForBook(uuid, language)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -64,7 +64,7 @@ func main() {
 	mux.HandleFunc("POST /page", handlers.NewPageHandler(connPool).PostPage)
 	mux.HandleFunc("GET /set/{setId}/translation-cards", handlers.NewTranslationHandler(connPool).GetTranslationCards)
 	mux.HandleFunc("GET /page/{pageId}/sets", handlers.NewPageHandler(connPool).GetAllSets)
-	mux.HandleFunc("GET /book/{userId}/pages", handlers.NewBookHandler(connPool).GetAllPages)
+	mux.HandleFunc("GET /book/pages", handlers.NewBookHandler(connPool).GetAllPages)
 
 	// Middlewares active
 	middlewaresList := []middlewares.Middleware{

@@ -7,25 +7,27 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 )
 
 type Book struct {
 	conn    *pgxpool.Pool
 	context context.Context
+	logger  *zap.Logger
 }
 
-func NewBookService(p *pgxpool.Pool, c context.Context) *Book {
-	return &Book{conn: p, context: c}
+func NewBookService(p *pgxpool.Pool, c context.Context, l *zap.Logger) *Book {
+	return &Book{conn: p, context: c, logger: l}
 }
 
-func (s *Book) RetrievePagesForBook(userId string, language string) ([]db.RetrievePagesForBookRow, error) {
+func (s *Book) RetrievePagesForBook(userID string, language string) ([]db.RetrievePagesForBookRow, error) {
 	// Query the database to get all the pages for a book for user
 	store := db.New(s.conn)
-	uuidTemp, _ := uuid.Parse("f47c1a1b-2e71-4960-878d-cd70db13264e")
+	u, _ := uuid.Parse(userID)
 
 	p := db.RetrievePagesForBookParams{
 		Language:  language,
-		CreatorID: pgtype.UUID{Bytes: uuidTemp, Valid: true},
+		CreatorID: pgtype.UUID{Bytes: u, Valid: true},
 	}
 
 	res, err := store.RetrievePagesForBook(s.context, p)

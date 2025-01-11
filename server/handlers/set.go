@@ -3,10 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"languageNotes/service"
-	"log"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 )
 
 type SetHandler struct {
@@ -24,7 +24,26 @@ func NewSetHandler(p *pgxpool.Pool) *SetHandler {
 
 // Create a new Set
 func (h *SetHandler) PostSet(w http.ResponseWriter, r *http.Request) {
-	log.Print("Create new Set")
+	// Create a logger
+	logger, err := createLoggerForRequest(r)
+
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Retrieve UUID from context
+	uuid, err := retrieveUUIDfromContext(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Entry log
+	logger.Info(
+		"PostSet",
+		zap.String("uuid", uuid),
+	)
 
 	var reqBody *PostSetRequestBody
 
@@ -33,11 +52,10 @@ func (h *SetHandler) PostSet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// TODO: Validate the request
-	// TODO: Fix userID
 
-	s := service.NewSetService(h.conn, r.Context())
+	s := service.NewSetService(h.conn, r.Context(), logger)
 
-	if err := s.CreateNewSet(reqBody.Name, reqBody.PageID); err != nil {
+	if err := s.CreateNewSet(uuid, reqBody.Name, reqBody.PageID); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
