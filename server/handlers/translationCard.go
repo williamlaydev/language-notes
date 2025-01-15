@@ -17,6 +17,7 @@ type TranslationHandler struct {
 type postTranslationRequestBody struct {
 	English  string `json:"english"`
 	Language string `json:"language"`
+	SetID    int    `json:"setId"`
 }
 
 func NewTranslationHandler(p *pgxpool.Pool) *TranslationHandler {
@@ -66,7 +67,7 @@ func (h *TranslationHandler) PostTranslate(w http.ResponseWriter, r *http.Reques
 
 	s := service.NewTranslationService(h.conn, r.Context(), logger)
 
-	err = s.CreateNewTranslationCard(uuid, reqBody.English, reqBody.Language)
+	err = s.CreateNewTranslationCard(uuid, reqBody.English, reqBody.Language, reqBody.SetID)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

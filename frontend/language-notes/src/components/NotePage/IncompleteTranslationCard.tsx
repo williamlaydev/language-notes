@@ -1,8 +1,10 @@
-import { useState } from "react"
+import { SupabaseContext } from "@/main"
+import { useContext, useState } from "react"
 
 type IncompleteTranslationCardProps = {
     language: string
-    refreshPageFunc: (setId: number) => void
+    refreshPageFunc: (setId: number, token: string) => void
+    setId: number
 }
 
 type TranslatedInfo = {
@@ -18,6 +20,8 @@ function IncompleteTranslationCard(props: IncompleteTranslationCardProps) {
         isTranslated: false
     })
 
+    const supabase = useContext(SupabaseContext)
+    
     // TODO: Validate if should be done
     // const handleUnfocus = async () => {
     //     if (translatedInfo.english) {
@@ -39,12 +43,22 @@ function IncompleteTranslationCard(props: IncompleteTranslationCardProps) {
     const handleEnter = async (e) => {
         if (e.key === "Enter" && translatedInfo.english) {
             try {
-                await translateEnglishWord(translatedInfo.english, translatedInfo.language);
+                const {data, error} = await supabase.auth.getSession()
+  
+                if (error || !data.session) {
+                throw new Error("Error fetching session: " + error.message)
+                }
+            
+                const token = data?.session?.access_token || ""
+
+                await translateEnglishWord(translatedInfo.english, translatedInfo.language, token, props.setId);
+
                 setTranslatedInfo(prev => ({
                     ...prev,
                     isTranslated: true
                 }))
-                props.refreshPageFunc(1);
+                
+                props.refreshPageFunc(1, token);
                 // Trigger refresh after successful translation          
             } catch (error) {
                 console.error("Error translating the word:", error);
@@ -53,31 +67,33 @@ function IncompleteTranslationCard(props: IncompleteTranslationCardProps) {
     }
     
     return (
-        <div className="max-w-sm p-4 bg-yellow-100 border border-yellow-300 shadow-md text-center">
+        <div className="max-w-sm p-4 text-center">
             <input 
-                    className="w-full p-2 mb-4 bg-transparent border-b-2 border-gray-300 focus:outline-none focus:border-yellow-500"
-                    type="text"
-                    onChange={(e) => setTranslatedInfo(prev => ({
-                        ...prev,
-                        english: e.target.value 
-                    }))}
-                    // onBlur={() => handleUnfocus()}
-                    onKeyDown={(e) => handleEnter(e)}
-                    placeholder={translatedInfo.english}
+                className="w-full p-2 mb-4 bg-transparent border-b-2 border-gray-300 focus:outline-none focus:border-stone-600"
+                type="text"
+                onChange={(e) => setTranslatedInfo(prev => ({
+                    ...prev,
+                    english: e.target.value 
+                }))}
+                // onBlur={() => handleUnfocus()}
+                onKeyDown={(e) => handleEnter(e)}
+                placeholder={translatedInfo.english}
             />
         </div>
     )
 }
 
-const translateEnglishWord = async (english: string, language: string) => {
+async function translateEnglishWord(english: string, language: string, token: string, setId: number) {
     await fetch("http://localhost:8080/translate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify({
         english: english,
         language: language,
+        setId: setId
       }),
     });
     // TODO: Response handling currently no response from backend

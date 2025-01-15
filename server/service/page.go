@@ -20,7 +20,7 @@ func NewPageService(p *pgxpool.Pool, c context.Context, l *zap.Logger) *Page {
 	return &Page{conn: p, context: c, logger: l}
 }
 
-func (s *Page) RetrieveSetsForPage(userID string, pageId int) ([]db.Set, error) {
+func (s *Page) RetrieveSetsForPage(userID string, pageId int) ([]db.RetrieveSetsForPageRow, error) {
 	// Query database for required data
 	store := db.New(s.conn)
 	u, _ := uuid.Parse(userID)

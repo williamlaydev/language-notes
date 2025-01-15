@@ -74,7 +74,12 @@ func main() {
 
 	wrappedMux := middlewares.ApplyMiddleware(mux, middlewaresList...)
 
-	corsEnabled := cors.Default().Handler(wrappedMux)
+	corsOptions := cors.Options{
+		AllowCredentials: true,
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+	}
+
+	corsEnabled := cors.New(corsOptions).Handler(wrappedMux)
 
 	server := &http.Server{
 		Addr:    ":8080",

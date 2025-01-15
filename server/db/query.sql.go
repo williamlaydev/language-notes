@@ -107,7 +107,7 @@ func (q *Queries) CreateTranslationCard(ctx context.Context, arg CreateTranslati
 
 const retrievePagesForBook = `-- name: RetrievePagesForBook :many
 
-SELECT p.id, p.name, p.book_id, p.creator_id
+SELECT p.id, p.name
 FROM pages p
 JOIN
     book b ON b.language = $1
@@ -122,10 +122,8 @@ type RetrievePagesForBookParams struct {
 }
 
 type RetrievePagesForBookRow struct {
-	ID        int64       `json:"id"`
-	Name      string      `json:"name"`
-	BookID    int64       `json:"book_id"`
-	CreatorID pgtype.UUID `json:"creator_id"`
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
 }
 
 // Pages --
@@ -138,12 +136,7 @@ func (q *Queries) RetrievePagesForBook(ctx context.Context, arg RetrievePagesFor
 	var items []RetrievePagesForBookRow
 	for rows.Next() {
 		var i RetrievePagesForBookRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.BookID,
-			&i.CreatorID,
-		); err != nil {
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -156,7 +149,7 @@ func (q *Queries) RetrievePagesForBook(ctx context.Context, arg RetrievePagesFor
 
 const retrieveSetsForPage = `-- name: RetrieveSetsForPage :many
 
-SELECT s.id, s.name, s.page_id, s.creator_id
+SELECT s.id, s.name, s.page_id
 FROM sets s
 JOIN
     pages p ON s.page_id = p.id
@@ -170,22 +163,23 @@ type RetrieveSetsForPageParams struct {
 	CreatorID pgtype.UUID `json:"creator_id"`
 }
 
+type RetrieveSetsForPageRow struct {
+	ID     int64  `json:"id"`
+	Name   string `json:"name"`
+	PageID int64  `json:"page_id"`
+}
+
 // Sets --
-func (q *Queries) RetrieveSetsForPage(ctx context.Context, arg RetrieveSetsForPageParams) ([]Set, error) {
+func (q *Queries) RetrieveSetsForPage(ctx context.Context, arg RetrieveSetsForPageParams) ([]RetrieveSetsForPageRow, error) {
 	rows, err := q.db.Query(ctx, retrieveSetsForPage, arg.PageID, arg.CreatorID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Set
+	var items []RetrieveSetsForPageRow
 	for rows.Next() {
-		var i Set
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.PageID,
-			&i.CreatorID,
-		); err != nil {
+		var i RetrieveSetsForPageRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.PageID); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -198,7 +192,7 @@ func (q *Queries) RetrieveSetsForPage(ctx context.Context, arg RetrieveSetsForPa
 
 const retrieveTranslationCardsForSet = `-- name: RetrieveTranslationCardsForSet :many
 
-SELECT tc.id, tc.creator_id, tc.english, tc.meaning, tc.translated, tc.created_at, tc.set_id, tc.language
+SELECT tc.id, tc.english, tc.meaning, tc.translated, tc.created_at, tc.set_id, tc.language
 FROM translation_cards tc
 JOIN
     Sets s ON tc.set_id = s.id
@@ -215,7 +209,6 @@ type RetrieveTranslationCardsForSetParams struct {
 
 type RetrieveTranslationCardsForSetRow struct {
 	ID         int64              `json:"id"`
-	CreatorID  pgtype.UUID        `json:"creator_id"`
 	English    string             `json:"english"`
 	Meaning    string             `json:"meaning"`
 	Translated string             `json:"translated"`
@@ -236,7 +229,6 @@ func (q *Queries) RetrieveTranslationCardsForSet(ctx context.Context, arg Retrie
 		var i RetrieveTranslationCardsForSetRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.CreatorID,
 			&i.English,
 			&i.Meaning,
 			&i.Translated,

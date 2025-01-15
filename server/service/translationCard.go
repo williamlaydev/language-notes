@@ -21,7 +21,7 @@ func NewTranslationService(p *pgxpool.Pool, c context.Context, l *zap.Logger) *T
 	return &TranslationCard{conn: p, context: c, logger: l}
 }
 
-func (s *TranslationCard) CreateNewTranslationCard(userID string, english string, language string) error {
+func (s *TranslationCard) CreateNewTranslationCard(userID string, english string, language string, setID int) error {
 	// Make call to translator
 	client := translator.NewChatGptClient()
 
@@ -42,7 +42,7 @@ func (s *TranslationCard) CreateNewTranslationCard(userID string, english string
 		English:    translatedWord.EnglishWithTones,
 		Meaning:    translatedWord.Meaning,
 		Translated: translatedWord.Translated,
-		SetID:      1,
+		SetID:      int64(setID),
 		Language:   translatedWord.Language,
 		CreatorID:  pgtype.UUID{Bytes: u, Valid: true},
 	}

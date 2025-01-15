@@ -1,7 +1,7 @@
 -- TranslationCards --
 
 -- name: RetrieveTranslationCardsForSet :many
-SELECT tc.id, tc.creator_id, tc.english, tc.meaning, tc.translated, tc.created_at, tc.set_id, tc.language
+SELECT tc.id, tc.english, tc.meaning, tc.translated, tc.created_at, tc.set_id, tc.language
 FROM translation_cards tc
 JOIN
     Sets s ON tc.set_id = s.id
@@ -21,7 +21,7 @@ RETURNING *;
 -- Sets --
 
 -- name: RetrieveSetsForPage :many
-SELECT s.id, s.name, s.page_id, s.creator_id
+SELECT s.id, s.name, s.page_id
 FROM sets s
 JOIN
     pages p ON s.page_id = p.id
@@ -39,7 +39,7 @@ INSERT INTO sets (
 -- Pages --
 
 -- name: RetrievePagesForBook :many
-SELECT p.id, p.name, p.book_id, p.creator_id
+SELECT p.id, p.name
 FROM pages p
 JOIN
     book b ON b.language = $1

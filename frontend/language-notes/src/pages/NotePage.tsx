@@ -1,61 +1,21 @@
-import { useContext, useEffect, useState } from 'react'
-import IncompleteTranslationCard from '../components/IncompleteTranslationCard'
-import CompletedTranslationCard from '../components/CompletedTranslationCard'
-import FileExplorer from '../components/fileExplorer/FileExplorer'
-import { GoogleLogin } from '@react-oauth/google';
-import { SupabaseContext } from '../main.tsx'
 
-type TranslationCard = {
-  id: number;
-  creator_id: string; // UUID
-  english: string;
-  meaning: string;
-  translated: string;
-  created_at: string; // ISO date string
-  set_id: number;
-  language: string;
-};
+import { useContext, useEffect, useState } from 'react'
+import FileExplorer from '../components/fileExplorer/FileExplorer.tsx'
+import { GoogleLogin } from '@react-oauth/google';
+import { SupabaseContext } from '../main.tsx'  
+import TranslationCardSection from '@/components/NotePage/TranslationCardSection.tsx';
+import { fetchPages } from '@/api/page.ts';
+import { fetchSets } from '@/api/set.ts';
 
 function NotePage() {
-  const [cards, setCards] = useState<TranslationCard[]>([])
+  const [fileExplorerData, setFileExplorerData] = useState<PageNode[]>([])
+  const [selectedSet, setSelectedSet] = useState<SetDetails>({id: -1, name: ""})
   const supabase = useContext(SupabaseContext)
-  
-  const fetchTranslationCards = async (setId: number) => {
-    const url = `http://localhost:8080/set/${setId}/translation-cards`;
-  
-    try {
-      const {data, error} = await supabase.auth.getSession()
-      if (error) {
-        throw new Error("Error fetching session: " + error.message)
-      }
 
-      const token = data?.session?.access_token
-
-      const response = await fetch(url, {
-        method: "GET", 
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        }
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-  
-      const translationCards = await response.json();
-
-      setCards([...translationCards])
-      return translationCards;
-    } catch (error) {
-      console.error("Error fetching translation cards:", error);
-      throw error;
-    }
-  };
-
-  const handleSetSelection = (setId: number) => {
+  const handleSetSelection = async (setId: number, setName: string) => {
     console.log(`getting cards for set ${setId}`)
-    fetchTranslationCards(setId || 0)
+   
+    setSelectedSet({id: setId, name: setName})
   }
   
   const handleSignInWithGoogle = async (response) => {
@@ -78,7 +38,35 @@ function NotePage() {
 
   const [session, setSession] = useState(null)
 
+  async function fetchFileExplorerData() {
+    const {data, error} = await supabase.auth.getSession()
+  
+    if (error || !data.session) {
+      throw new Error("Error fetching session: " + error.message)
+    }
+  
+    const token = data?.session?.access_token || ""
+  
+    const pages = await fetchPages("chinese", token);
+  
+    // Populate the sets for each page
+    for (const page of pages) {
+      const sets = await fetchSets(page.id, token)
+      
+      setFileExplorerData((prev) => [
+        ...prev,
+        {
+          id: page.id,
+          name: page.name,
+          sets,
+        } as PageNode,
+      ]);
+    }
+  };
+
   useEffect(() => {
+    fetchFileExplorerData()
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
     })
@@ -93,49 +81,30 @@ function NotePage() {
   }, [supabase.auth])
 
   if (!session) {
-      return ( 
-        <>
-          <h1> Not logged in </h1>
-          <GoogleLogin onSuccess={handleSignInWithGoogle} onError={()=>console.log("nogood")}/>
-        </>
-        
-      )
+    return ( 
+      <>
+        <h1> Not logged in </h1>
+        <GoogleLogin onSuccess={handleSignInWithGoogle} onError={()=>console.log("nogood")}/>
+      </>
+    )
   }
   else {
     return (
       <>
         <div className="flex flex-row w-full h-screen">
-          {/* FileNav */}
+          {/* File explorer */}
           <div className="w-1/6">
-            <FileExplorer setChosenSetIdCallback={handleSetSelection}/>
-            <button onClick={handleSignOut}>Sign out</button>
+            <FileExplorer language="Chinese" fileExplorerData={fileExplorerData} setSelectionCallbackFunc={handleSetSelection}/>
           </div>
-    
-          {/* Right Section: 60% */}
+
           <div className="w-3/5 p-4">
-            <div className="grid grid-cols-6 grid-rows-5 gap-4">
-                <IncompleteTranslationCard
-                  language={"chinese"}
-                  refreshPageFunc={fetchTranslationCards}
-                />
-              {cards.map(card => {
-                return (
-                  <CompletedTranslationCard
-                    key={card.id}
-                    language={card.language}
-                    english={card.english}
-                    meaning={card.meaning}
-                    translated={card.translated}
-                  />
-                );
-              })}
-            </div>
+            <h1>{selectedSet.name}</h1>
+            <TranslationCardSection setId={selectedSet.id}/>
           </div>
         </div>
       </>
     )
   }
 }
-
 
 export default NotePage
