@@ -1,15 +1,18 @@
 
 import { useContext, useEffect, useState } from 'react'
-import FileExplorer from '../components/fileExplorer/FileExplorer.tsx'
-import { GoogleLogin } from '@react-oauth/google';
+import FileExplorer from '../components/FileExplorer/FileExplorer.tsx'
 import { SupabaseContext } from '../main.tsx'  
 import TranslationCardSection from '@/components/NotePage/TranslationCardSection.tsx';
 import { fetchPages } from '@/api/page.ts';
 import { fetchSets } from '@/api/set.ts';
 
 function NotePage() {
-  const [fileExplorerData, setFileExplorerData] = useState<PageNode[]>([])
+  const [fileExplorerData, setFileExplorerData] = useState({
+    tree: [] as PageNode[]
+  })
+
   const [selectedSet, setSelectedSet] = useState<SetDetails>({id: -1, name: ""})
+  const [session, setSession] = useState(null)
   const supabase = useContext(SupabaseContext)
 
   const handleSetSelection = async (setId: number, setName: string) => {
@@ -17,30 +20,14 @@ function NotePage() {
    
     setSelectedSet({id: setId, name: setName})
   }
-  
-  const handleSignInWithGoogle = async (response) => {
-    // TODO: Error handling
-    const { data, error } = await supabase.auth.signInWithIdToken({
-      provider: 'google',
-      token: response.credential, // TODO: PASS THIS TO BACKEND
-    })
-
-    if (error) {
-      console.error("Supabase Auth Error:", error.message);
-    } else {
-      console.log("Supabase Auth Success:", data.session.access_token);
-    }
-  }
 
   const handleSignOut = async () => {
     await supabase.auth.signOut({ scope: 'local' })
   }
 
-  const [session, setSession] = useState(null)
-
   async function fetchFileExplorerData() {
     const {data, error} = await supabase.auth.getSession()
-  
+
     if (error || !data.session) {
       throw new Error("Error fetching session: " + error.message)
     }
@@ -48,53 +35,49 @@ function NotePage() {
     const token = data?.session?.access_token || ""
   
     const pages = await fetchPages("chinese", token);
-  
+    
     // Populate the sets for each page
     for (const page of pages) {
       const sets = await fetchSets(page.id, token)
       
-      setFileExplorerData((prev) => [
-        ...prev,
-        {
-          id: page.id,
-          name: page.name,
-          sets,
-        } as PageNode,
-      ]);
+      setFileExplorerData((prev) => ({
+        tree: [
+          ...prev.tree,
+          {
+            id: page.id,
+            name: page.name,
+            sets,
+          } as PageNode,
+        ]
+      }));
     }
   };
 
   useEffect(() => {
-    fetchFileExplorerData()
+    fetchFileExplorerData()  
+    // supabase.auth.getSession().then(({ data: { session } }) => {
+    //   setSession(session)
+    // })
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-    })
+    // const {
+    //   data: { subscription },
+    // } = supabase.auth.onAuthStateChange((_event, session) => {
+    //   setSession(session)
+    // })
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-
-    return () => subscription.unsubscribe()
+    // return () => subscription.unsubscribe()
   }, [supabase.auth])
 
-  if (!session) {
-    return ( 
-      <>
-        <h1> Not logged in </h1>
-        <GoogleLogin onSuccess={handleSignInWithGoogle} onError={()=>console.log("nogood")}/>
-      </>
-    )
-  }
-  else {
+  // if (!session) {
+  //   //TODO: CHANGE THIS
+  //   console.log("Not logged in")
+  // } else {
     return (
       <>
         <div className="flex flex-row w-full h-screen">
           {/* File explorer */}
           <div className="w-1/6">
-            <FileExplorer language="Chinese" fileExplorerData={fileExplorerData} setSelectionCallbackFunc={handleSetSelection}/>
+            <FileExplorer language="Chinese" fileExplorerData={fileExplorerData.tree} setSelectionCallbackFunc={handleSetSelection}/>
           </div>
 
           <div className="w-3/5 p-4">
@@ -104,7 +87,6 @@ function NotePage() {
         </div>
       </>
     )
-  }
 }
 
 export default NotePage

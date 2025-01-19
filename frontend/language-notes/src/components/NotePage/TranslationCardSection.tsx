@@ -17,7 +17,6 @@ function TranslationCardSection(props: TranslationCardSectionProps) {
     const initialisePage = useCallback(async () => {
         try {
             const { data, error } = await supabase.auth.getSession();
-
             if (error || !data.session) {
                 throw new Error("Error fetching session: " + (error?.message || "No session data"));
             }
@@ -62,7 +61,7 @@ function TranslationCardSection(props: TranslationCardSectionProps) {
               })}
             </div>
           </ResizablePanel>
-          <ResizableHandle withHandle />
+          <ResizableHandle />
           <ResizablePanel>
             <div>
               <h1>

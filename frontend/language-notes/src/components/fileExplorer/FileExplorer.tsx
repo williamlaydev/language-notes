@@ -1,4 +1,4 @@
-import { ChevronRight, File, Folder } from "lucide-react"
+import { ChevronRight, File, Folder, SquarePlus } from "lucide-react"
 import {
   Collapsible,
   CollapsibleContent,
@@ -7,15 +7,19 @@ import {
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
-  SidebarRail,
+  SidebarProvider,
 } from "@/components/ui/sidebar"
+import UserProfileNav from "./UserProfileNav.tsx";
 
 type FileExplorerProps = {
   setSelectionCallbackFunc: (setId: number, setName: string) => void;
@@ -25,19 +29,25 @@ type FileExplorerProps = {
 
 const FileExplorer = (props: FileExplorerProps) => {
   return (
-    <Sidebar>
-      <SidebarContent>
-        <SidebarGroup>
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader>
           <SidebarGroupLabel>{props.language}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <PagesTree pages={props.fileExplorerData} setSelectionFunc={props.setSelectionCallbackFunc}/>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarRail />
-    </Sidebar>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <PagesTree pages={props.fileExplorerData} setSelectionFunc={props.setSelectionCallbackFunc}/>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>
+          <UserProfileNav/>
+        </SidebarFooter>
+      </Sidebar>
+    </SidebarProvider>
   );
 };
 
@@ -48,9 +58,10 @@ function PagesTree({ pages, setSelectionFunc }: {pages: PageNode[], setSelection
         <Collapsible key={page.id} className="group/collapsible">
           <CollapsibleTrigger asChild>
             <SidebarMenuButton>
-              <ChevronRight className="transition-transform" />
+              <ChevronRight className="transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"/>
               <Folder />
               {page.name}
+              <SquarePlus className="ml-auto hover:bg-sidebar-accent" onClick={()=>console.log("test")}/>
             </SidebarMenuButton>
           </CollapsibleTrigger>
           <CollapsibleContent>

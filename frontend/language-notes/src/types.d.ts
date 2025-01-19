@@ -19,3 +19,8 @@ type TranslationCard = {
   set_id: number;
   language: string;
 };
+
+type UserDisplayData = {
+  name: string;
+  imgSrc: string;
+}
