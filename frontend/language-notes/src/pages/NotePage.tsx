@@ -12,17 +12,12 @@ function NotePage() {
   })
 
   const [selectedSet, setSelectedSet] = useState<SetDetails>({id: -1, name: ""})
-  const [session, setSession] = useState(null)
   const supabase = useContext(SupabaseContext)
 
   const handleSetSelection = async (setId: number, setName: string) => {
     console.log(`getting cards for set ${setId}`)
    
     setSelectedSet({id: setId, name: setName})
-  }
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut({ scope: 'local' })
   }
 
   async function fetchFileExplorerData() {
@@ -55,23 +50,8 @@ function NotePage() {
 
   useEffect(() => {
     fetchFileExplorerData()  
-    // supabase.auth.getSession().then(({ data: { session } }) => {
-    //   setSession(session)
-    // })
 
-    // const {
-    //   data: { subscription },
-    // } = supabase.auth.onAuthStateChange((_event, session) => {
-    //   setSession(session)
-    // })
-
-    // return () => subscription.unsubscribe()
   }, [supabase.auth])
-
-  // if (!session) {
-  //   //TODO: CHANGE THIS
-  //   console.log("Not logged in")
-  // } else {
     return (
       <>
         <div className="flex flex-row w-full h-screen">

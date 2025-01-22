@@ -1,4 +1,4 @@
-import { ChevronRight, File, Folder, SquarePlus } from "lucide-react"
+import { ChevronRight, File, Folder } from "lucide-react"
 import {
   Collapsible,
   CollapsibleContent,
@@ -13,13 +13,13 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarProvider,
 } from "@/components/ui/sidebar"
 import UserProfileNav from "./UserProfileNav.tsx";
+import AddPageDialog from "../AddPageDialog/AddPageDialog.tsx";
 
 type FileExplorerProps = {
   setSelectionCallbackFunc: (setId: number, setName: string) => void;
@@ -33,6 +33,7 @@ const FileExplorer = (props: FileExplorerProps) => {
       <Sidebar>
         <SidebarHeader>
           <SidebarGroupLabel>{props.language}</SidebarGroupLabel>
+          <SidebarGroupLabel className="ml-auto"><AddPageDialog/></SidebarGroupLabel>
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
@@ -61,7 +62,6 @@ function PagesTree({ pages, setSelectionFunc }: {pages: PageNode[], setSelection
               <ChevronRight className="transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"/>
               <Folder />
               {page.name}
-              <SquarePlus className="ml-auto hover:bg-sidebar-accent" onClick={()=>console.log("test")}/>
             </SidebarMenuButton>
           </CollapsibleTrigger>
           <CollapsibleContent>
