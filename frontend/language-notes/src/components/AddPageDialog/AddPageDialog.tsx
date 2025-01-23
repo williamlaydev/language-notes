@@ -16,9 +16,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { createNewPage } from "@/api/page";
-import { useToast } from "@/hooks/use-toast";
 
-function AddPageDialog() {
+type AddPageDialogProps = {
+    refreshFunction: () => void;
+}
+
+function AddPageDialog(props: AddPageDialogProps) {
     const [open, setOpen] = useState(false);
     const supabase = useContext(SupabaseContext)
     // const {toast} = useToast()
@@ -46,6 +49,7 @@ function AddPageDialog() {
         //         description: `Unexpected error has occurred!`
         //     })
         // }
+        props.refreshFunction()
         setOpen(false)
     }
 
@@ -80,7 +84,7 @@ function AddPageDialog() {
                                 <FormItem> 
                                     <FormLabel>Category name</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="" {...field} />
+                                        <Input autoComplete="off" placeholder="" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

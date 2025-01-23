@@ -32,20 +32,22 @@ function NotePage() {
     const pages = await fetchPages("chinese", token);
     
     // Populate the sets for each page
+    const tempTree = {
+      tree: [] as PageNode[]
+    }
+
     for (const page of pages) {
       const sets = await fetchSets(page.id, token)
       
-      setFileExplorerData((prev) => ({
-        tree: [
-          ...prev.tree,
-          {
-            id: page.id,
-            name: page.name,
-            sets,
-          } as PageNode,
-        ]
-      }));
+      // TODO: Handle if sets is empty
+      tempTree.tree.push({
+        id: page.id,
+        name: page.name,
+        sets
+      })
     }
+
+    setFileExplorerData(tempTree)
   };
 
   useEffect(() => {
@@ -57,7 +59,7 @@ function NotePage() {
         <div className="flex flex-row w-full h-screen">
           {/* File explorer */}
           <div className="w-1/6">
-            <FileExplorer language="Chinese" fileExplorerData={fileExplorerData.tree} setSelectionCallbackFunc={handleSetSelection}/>
+            <FileExplorer language="Chinese" fileExplorerData={fileExplorerData.tree} setSelectionCallbackFunction={handleSetSelection} fileExplorerRefreshFunction={fetchFileExplorerData}/>
           </div>
 
           <div className="w-3/5 p-4">
