@@ -46,7 +46,7 @@ func (h *PageHandler) GetAllSets(w http.ResponseWriter, r *http.Request) {
 		zap.String("uuid", uuid),
 	)
 
-	pageId, err := strconv.Atoi(r.PathValue("pageId"))
+	pageId, err := strconv.Atoi(r.PathValue("pageID"))
 
 	if err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)

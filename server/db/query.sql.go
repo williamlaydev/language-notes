@@ -105,6 +105,17 @@ func (q *Queries) CreateTranslationCard(ctx context.Context, arg CreateTranslati
 	return i, err
 }
 
+const deleteTranslationCard = `-- name: DeleteTranslationCard :exec
+DELETE FROM translation_cards
+WHERE 
+    id = $1
+`
+
+func (q *Queries) DeleteTranslationCard(ctx context.Context, id int64) error {
+	_, err := q.db.Exec(ctx, deleteTranslationCard, id)
+	return err
+}
+
 const retrievePagesForBook = `-- name: RetrievePagesForBook :many
 
 SELECT p.id, p.name
@@ -244,4 +255,100 @@ func (q *Queries) RetrieveTranslationCardsForSet(ctx context.Context, arg Retrie
 		return nil, err
 	}
 	return items, nil
+}
+
+const updatePage = `-- name: UpdatePage :one
+UPDATE pages
+SET
+    name = COALESCE(NULLIF($3::text, ''), name)
+WHERE
+    id = $1 AND creator_id = $2
+RETURNING id, created_at, creator_id, name, book_id
+`
+
+type UpdatePageParams struct {
+	ID        int64       `json:"id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+	Name      string      `json:"name"`
+}
+
+func (q *Queries) UpdatePage(ctx context.Context, arg UpdatePageParams) (Page, error) {
+	row := q.db.QueryRow(ctx, updatePage, arg.ID, arg.CreatorID, arg.Name)
+	var i Page
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.CreatorID,
+		&i.Name,
+		&i.BookID,
+	)
+	return i, err
+}
+
+const updateSet = `-- name: UpdateSet :one
+UPDATE sets
+SET
+    name = COALESCE(NULLIF($3::text, ''), name)
+WHERE
+    id = $1 AND creator_id = $2
+RETURNING id, name, page_id, creator_id
+`
+
+type UpdateSetParams struct {
+	ID        int64       `json:"id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+	Name      string      `json:"name"`
+}
+
+func (q *Queries) UpdateSet(ctx context.Context, arg UpdateSetParams) (Set, error) {
+	row := q.db.QueryRow(ctx, updateSet, arg.ID, arg.CreatorID, arg.Name)
+	var i Set
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.PageID,
+		&i.CreatorID,
+	)
+	return i, err
+}
+
+const updateTranslationCard = `-- name: UpdateTranslationCard :one
+UPDATE translation_cards
+SET
+    meaning = COALESCE(NULLIF($3::text, ''), meaning),
+    translated = COALESCE(NULLIF($4::text, ''), translated),
+    english = COALESCE(NULLIF($5::Text, ''), english)
+WHERE
+    id = $1 AND creator_id = $2
+RETURNING id, created_at, english, meaning, translated, set_id, language, creator_id
+`
+
+type UpdateTranslationCardParams struct {
+	ID         int64       `json:"id"`
+	CreatorID  pgtype.UUID `json:"creator_id"`
+	Meaning    string      `json:"meaning"`
+	Translated string      `json:"translated"`
+	English    string      `json:"english"`
+}
+
+func (q *Queries) UpdateTranslationCard(ctx context.Context, arg UpdateTranslationCardParams) (TranslationCard, error) {
+	row := q.db.QueryRow(ctx, updateTranslationCard,
+		arg.ID,
+		arg.CreatorID,
+		arg.Meaning,
+		arg.Translated,
+		arg.English,
+	)
+	var i TranslationCard
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.English,
+		&i.Meaning,
+		&i.Translated,
+		&i.SetID,
+		&i.Language,
+		&i.CreatorID,
+	)
+	return i, err
 }

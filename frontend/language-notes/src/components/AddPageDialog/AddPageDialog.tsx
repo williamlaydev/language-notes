@@ -9,20 +9,18 @@ import {
 import { FolderPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SupabaseContext } from "@/main";
+import { SupabaseContext } from "@/index";
 import { useContext, useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { createNewPage } from "@/api/page";
+import useFileExplorerStore from "@/stores/useFileExplorerStore";
 
-type AddPageDialogProps = {
-    refreshFunction: () => void;
-}
-
-function AddPageDialog(props: AddPageDialogProps) {
+function AddPageDialog() {
     const [open, setOpen] = useState(false);
+    const {setFileExplorerState} = useFileExplorerStore();
     const supabase = useContext(SupabaseContext)
     // const {toast} = useToast()
 
@@ -49,7 +47,8 @@ function AddPageDialog(props: AddPageDialogProps) {
         //         description: `Unexpected error has occurred!`
         //     })
         // }
-        props.refreshFunction()
+        setFileExplorerState(supabase)
+         // TODO : Error handle
         setOpen(false)
     }
 

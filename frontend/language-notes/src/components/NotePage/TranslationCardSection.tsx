@@ -2,17 +2,18 @@ import { fetchTranslationCards } from "@/api/translationCard";
 import { useCallback, useContext, useEffect, useState } from "react";
 import CompletedTranslationCard from "./CompletedTranslationCard";
 import IncompleteTranslationCard from "./IncompleteTranslationCard";
-import { SupabaseContext } from "@/main";
+import { SupabaseContext } from "@/index";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "../ui/resizable";
+import EditableTranslationCard from "./EditableTranslationCard";
 
 type TranslationCardSectionProps = {
     setId: number
+    isEditMode: boolean
 }
 
 function TranslationCardSection(props: TranslationCardSectionProps) {
     const [translationCards, setTranslationCards] = useState<TranslationCard[]>([])
   
-
     const supabase = useContext(SupabaseContext)
     const initialisePage = useCallback(async () => {
         try {
@@ -42,23 +43,42 @@ function TranslationCardSection(props: TranslationCardSectionProps) {
       <>
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel>
-            <div className="grid grid-cols-6 grid-rows-5">
-              <IncompleteTranslationCard
-                language={"chinese"}
-                refreshPageFunc={initialisePage}
-                setId={props.setId}
-              />
-              {translationCards.map(card => {
-                return (
-                  <CompletedTranslationCard
-                    key={card.id}
-                    language={card.language}
-                    english={card.english}
-                    meaning={card.meaning}
-                    translated={card.translated}
+            <div className="grid grid-cols-9 grid-rows-5">
+            {
+              props.isEditMode ? 
+                translationCards.map(card => {
+                  return (
+                    <EditableTranslationCard
+                      key={card.id}
+                      setId={props.setId}
+                      cardId={card.id}
+                      english={card.english}
+                      meaning={card.meaning}
+                      translated={card.translated}
+                      refreshPageFunc={initialisePage}
+                    />
+                  )
+                })
+              :
+                <>
+                  <IncompleteTranslationCard
+                    language={"chinese"}
+                    refreshPageFunc={initialisePage}
+                    setId={props.setId}
                   />
-                );
-              })}
+                  {translationCards.map(card => {
+                    return (
+                      <CompletedTranslationCard
+                        key={card.id}
+                        language={card.language}
+                        english={card.english}
+                        meaning={card.meaning}
+                        translated={card.translated}
+                      />
+                    )
+                  })}
+                </>
+            }
             </div>
           </ResizablePanel>
           <ResizableHandle />

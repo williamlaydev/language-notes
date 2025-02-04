@@ -1,4 +1,5 @@
-import { SupabaseContext } from "@/main"
+import { translateEnglishWord } from "@/api/translationCard"
+import { SupabaseContext } from "@/index"
 import { useContext, useState } from "react"
 
 type IncompleteTranslationCardProps = {
@@ -58,7 +59,7 @@ function IncompleteTranslationCard(props: IncompleteTranslationCardProps) {
                     isTranslated: true
                 }))
                 
-                props.refreshPageFunc(1, token);
+                props.refreshPageFunc(props.setId, token);
                 // Trigger refresh after successful translation          
             } catch (error) {
                 console.error("Error translating the word:", error);
@@ -82,27 +83,5 @@ function IncompleteTranslationCard(props: IncompleteTranslationCardProps) {
         </div>
     )
 }
-
-async function translateEnglishWord(english: string, language: string, token: string, setId: number) {
-    await fetch("http://localhost:8080/translate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        english: english,
-        language: language,
-        setId: setId
-      }),
-    });
-    // TODO: Response handling currently no response from backend
-    // const data = await response.json();
-    // console.log(data)
-    // return {
-    //   translated: data.translated,
-    //   meaning: data.meaning,
-    // };
-  };
 
 export default IncompleteTranslationCard

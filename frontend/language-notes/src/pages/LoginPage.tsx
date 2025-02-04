@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { SupabaseContext } from "@/main";
+import { SupabaseContext } from "@/index";
 import { GoogleLogin } from "@react-oauth/google";
 import { useContext } from "react";
 import { useNavigate } from "react-router";

@@ -20,6 +20,12 @@ type postTranslationRequestBody struct {
 	SetID    int    `json:"setId"`
 }
 
+type patchTranslationCardRequestBody struct {
+	English    string `json:"english"`
+	Meaning    string `json:"meaning"`
+	Translated string `json:"translated"`
+}
+
 func NewTranslationHandler(p *pgxpool.Pool) *TranslationHandler {
 	return &TranslationHandler{conn: p}
 }
@@ -79,7 +85,7 @@ func (h *TranslationHandler) PostTranslate(w http.ResponseWriter, r *http.Reques
 	// TODO: Maybe add a return body so that we know what was added?
 }
 
-// GET /set/{setId}/translation-cards
+// GET /set/{setID}/translation-cards
 func (h *TranslationHandler) GetTranslationCards(w http.ResponseWriter, r *http.Request) {
 	// Create a logger
 	logger, err := createLoggerForRequest(r)
@@ -103,7 +109,7 @@ func (h *TranslationHandler) GetTranslationCards(w http.ResponseWriter, r *http.
 	)
 
 	// Retrieve values from the path
-	setID, err := strconv.Atoi(r.PathValue("setId"))
+	setID, err := strconv.Atoi(r.PathValue("setID"))
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -115,7 +121,7 @@ func (h *TranslationHandler) GetTranslationCards(w http.ResponseWriter, r *http.
 	// Create new service and call the relevant method
 	s := service.NewTranslationService(h.conn, r.Context(), logger)
 
-	res, err := s.RetrieveTransactionCards(uuid, setID)
+	res, err := s.TranslationCards(uuid, setID)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -125,4 +131,90 @@ func (h *TranslationHandler) GetTranslationCards(w http.ResponseWriter, r *http.
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(res)
+}
+
+func (h *TranslationHandler) PatchTranslationCard(w http.ResponseWriter, r *http.Request) {
+	// Create a logger
+	logger, err := createLoggerForRequest(r)
+
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Retrieve UUID from context
+	uuid, err := retrieveUUIDfromContext(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Entry log
+	logger.Info(
+		"PatchTranslationCard",
+		zap.String("uuid", uuid),
+	)
+
+	// Retrieve values from the path
+	cardID, err := strconv.Atoi(r.PathValue("cardID"))
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// TODO: Validate request
+
+	var reqBody *patchTranslationCardRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	// Create new service and call the relevant method
+	s := service.NewTranslationService(h.conn, r.Context(), logger)
+
+	err = s.UpdateTranslationCard(uuid, cardID, reqBody.English, reqBody.Meaning, reqBody.Translated)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *TranslationHandler) DeleteTranslationCard(w http.ResponseWriter, r *http.Request) {
+	// Create a logger
+	logger, err := createLoggerForRequest(r)
+
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Retrieve UUID from context
+	uuid, err := retrieveUUIDfromContext(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Entry log
+	logger.Info(
+		"DeleteTranslationCard",
+		zap.String("uuid", uuid),
+	)
+
+	// Retrieve value from the path
+	cardID, err := strconv.Atoi(r.PathValue("cardID"))
+
+	s := service.NewTranslationService(h.conn, r.Context(), logger)
+
+	if err := s.DeleteTranslationCard(cardID); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 }

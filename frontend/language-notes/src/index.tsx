@@ -23,7 +23,7 @@ const App = () => {
             <Route
               element={
                 <ProtectedRoutes supabase={supabase}>
-                  <NotePage />
+                  <NotePage/>
                 </ProtectedRoutes>
               }
               path="/"

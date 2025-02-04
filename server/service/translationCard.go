@@ -57,7 +57,7 @@ func (s *TranslationCard) CreateNewTranslationCard(userID string, english string
 	return nil
 }
 
-func (s *TranslationCard) RetrieveTransactionCards(userID string, setID int) ([]db.RetrieveTranslationCardsForSetRow, error) {
+func (s *TranslationCard) TranslationCards(userID string, setID int) ([]db.RetrieveTranslationCardsForSetRow, error) {
 	// Query database for required data
 	store := db.New(s.conn)
 
@@ -74,4 +74,36 @@ func (s *TranslationCard) RetrieveTransactionCards(userID string, setID int) ([]
 	}
 
 	return translationCards, nil
+}
+
+func (s *TranslationCard) UpdateTranslationCard(userID string, cardID int, english string, meaning string, translated string) error {
+	store := db.New(s.conn)
+
+	u, _ := uuid.Parse(userID)
+	p := db.UpdateTranslationCardParams{
+		ID:         int64(cardID),
+		CreatorID:  pgtype.UUID{Bytes: u, Valid: true},
+		English:    english,
+		Meaning:    meaning,
+		Translated: translated,
+	}
+
+	// TODO: Handle translation card response
+	_, err := store.UpdateTranslationCard(s.context, p)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *TranslationCard) DeleteTranslationCard(cardID int) error {
+	store := db.New(s.conn)
+
+	if err := store.DeleteTranslationCard(s.context, int64(cardID)); err != nil {
+		return err
+	}
+
+	return nil
 }

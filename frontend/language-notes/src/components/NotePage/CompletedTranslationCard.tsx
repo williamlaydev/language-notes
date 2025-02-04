@@ -15,7 +15,7 @@ type TranslationCardProps = {
 function CompletedTranslationCard(props: TranslationCardProps) {
     return (
         <div className="max-w-sm p-4 text-center">
-            <Accordion type="single" defaultValue={props.english} collapsible>
+            {/* <Accordion type="single" defaultValue={props.english} collapsible>
                 <AccordionItem value={props.english}>
                     <AccordionTrigger >
                         {props.english}
@@ -26,7 +26,12 @@ function CompletedTranslationCard(props: TranslationCardProps) {
                         {props.meaning}
                     </AccordionContent>
                 </AccordionItem>
-            </Accordion>
+            </Accordion> */}
+            <div className="flex flex-col items-center text-center">
+                <p>{props.english}</p>
+                <p>{props.translated}</p>
+                <p>{props.meaning}</p>
+            </div>
         </div>
     );
 }

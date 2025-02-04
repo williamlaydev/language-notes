@@ -1,4 +1,4 @@
-import { SupabaseContext } from "@/main";
+import { SupabaseContext } from "@/index";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ChevronsUpDown, LogOut } from "lucide-react";

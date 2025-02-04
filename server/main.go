@@ -62,10 +62,14 @@ func main() {
 	mux.HandleFunc("POST /translate", handlers.NewTranslationHandler(connPool).PostTranslate)
 	mux.HandleFunc("POST /set", handlers.NewSetHandler(connPool).PostSet)
 	mux.HandleFunc("POST /page", handlers.NewPageHandler(connPool).PostPage)
-	mux.HandleFunc("GET /set/{setId}/translation-cards", handlers.NewTranslationHandler(connPool).GetTranslationCards)
-	mux.HandleFunc("GET /page/{pageId}/sets", handlers.NewPageHandler(connPool).GetAllSets)
+
+	mux.HandleFunc("GET /set/{setID}/translation-cards", handlers.NewTranslationHandler(connPool).GetTranslationCards)
+	mux.HandleFunc("GET /page/{pageID}/sets", handlers.NewPageHandler(connPool).GetAllSets)
 	mux.HandleFunc("GET /book/pages", handlers.NewBookHandler(connPool).GetAllPages)
 
+	mux.HandleFunc("PATCH /translation-card/{cardID}", handlers.NewTranslationHandler(connPool).PatchTranslationCard)
+
+	mux.HandleFunc("DELETE /translation-card/{cardID}", handlers.NewTranslationHandler(connPool).DeleteTranslationCard)
 	// Middlewares active
 	middlewaresList := []middlewares.Middleware{
 		middlewares.RequestID(),
@@ -77,6 +81,7 @@ func main() {
 	corsOptions := cors.Options{
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowedMethods:   []string{"GET", "POST", "PATCH", "DELETE"},
 	}
 
 	corsEnabled := cors.New(corsOptions).Handler(wrappedMux)

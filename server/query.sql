@@ -18,6 +18,21 @@ INSERT INTO translation_cards (
 )
 RETURNING *;
 
+-- name: UpdateTranslationCard :one
+UPDATE translation_cards
+SET
+    meaning = COALESCE(NULLIF(@meaning::text, ''), meaning),
+    translated = COALESCE(NULLIF(@translated::text, ''), translated),
+    english = COALESCE(NULLIF(@english::Text, ''), english)
+WHERE
+    id = $1 AND creator_id = $2
+RETURNING *;
+
+-- name: DeleteTranslationCard :exec
+DELETE FROM translation_cards
+WHERE 
+    id = $1;
+
 -- Sets --
 
 -- name: RetrieveSetsForPage :many
@@ -36,6 +51,14 @@ INSERT INTO sets (
     $1, $2, $3
 ) RETURNING *;
 
+-- name: UpdateSet :one
+UPDATE sets
+SET
+    name = COALESCE(NULLIF(@name::text, ''), name)
+WHERE
+    id = $1 AND creator_id = $2
+RETURNING *;
+
 -- Pages --
 
 -- name: RetrievePagesForBook :many
@@ -53,3 +76,11 @@ INSERT INTO pages (
 ) VALUES (
     $1, $2, $3
 ) RETURNING *;
+
+-- name: UpdatePage :one
+UPDATE pages
+SET
+    name = COALESCE(NULLIF(@name::text, ''), name)
+WHERE
+    id = $1 AND creator_id = $2
+RETURNING *;
