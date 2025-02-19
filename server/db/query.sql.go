@@ -11,6 +11,33 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createSingleBook = `-- name: CreateSingleBook :one
+INSERT INTO book (
+    name, creator_id, language
+) VALUES (
+    $1, $2, $3
+) RETURNING id, created_at, name, language, creator_id
+`
+
+type CreateSingleBookParams struct {
+	Name      string      `json:"name"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+	Language  string      `json:"language"`
+}
+
+func (q *Queries) CreateSingleBook(ctx context.Context, arg CreateSingleBookParams) (Book, error) {
+	row := q.db.QueryRow(ctx, createSingleBook, arg.Name, arg.CreatorID, arg.Language)
+	var i Book
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Language,
+		&i.CreatorID,
+	)
+	return i, err
+}
+
 const createSinglePage = `-- name: CreateSinglePage :one
 INSERT INTO pages (
     name, book_id, creator_id
@@ -116,19 +143,53 @@ func (q *Queries) DeleteTranslationCard(ctx context.Context, id int64) error {
 	return err
 }
 
+const retrieveAllBooks = `-- name: RetrieveAllBooks :many
+SELECT b.id, b.name, b.language
+FROM book b
+WHERE
+    b.creator_id = $1
+`
+
+type RetrieveAllBooksRow struct {
+	ID       int64  `json:"id"`
+	Name     string `json:"name"`
+	Language string `json:"language"`
+}
+
+// Books --
+func (q *Queries) RetrieveAllBooks(ctx context.Context, creatorID pgtype.UUID) ([]RetrieveAllBooksRow, error) {
+	rows, err := q.db.Query(ctx, retrieveAllBooks, creatorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RetrieveAllBooksRow
+	for rows.Next() {
+		var i RetrieveAllBooksRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.Language); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const retrievePagesForBook = `-- name: RetrievePagesForBook :many
 
 SELECT p.id, p.name
 FROM pages p
 JOIN
-    book b ON b.language = $1
+    book b ON b.id = $1
 JOIN Users u ON p.creator_id = u.uuid
 WHERE
     p.creator_id = $2
 `
 
 type RetrievePagesForBookParams struct {
-	Language  string      `json:"language"`
+	ID        int64       `json:"id"`
 	CreatorID pgtype.UUID `json:"creator_id"`
 }
 
@@ -139,7 +200,7 @@ type RetrievePagesForBookRow struct {
 
 // Pages --
 func (q *Queries) RetrievePagesForBook(ctx context.Context, arg RetrievePagesForBookParams) ([]RetrievePagesForBookRow, error) {
-	rows, err := q.db.Query(ctx, retrievePagesForBook, arg.Language, arg.CreatorID)
+	rows, err := q.db.Query(ctx, retrievePagesForBook, arg.ID, arg.CreatorID)
 	if err != nil {
 		return nil, err
 	}

@@ -14,6 +14,7 @@ type TranslationCardProps = {
 
 function CompletedTranslationCard(props: TranslationCardProps) {
     return (
+        // className="p-4 break-words overflow-visible"
         <div className="max-w-sm p-4 text-center">
             {/* <Accordion type="single" defaultValue={props.english} collapsible>
                 <AccordionItem value={props.english}>

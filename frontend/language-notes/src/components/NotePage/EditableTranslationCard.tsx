@@ -65,6 +65,7 @@ function EditableTranslationCard(props: EditableTranslationCardProps) {
         }
     }
     return (
+        // p-4 break-words overflow-visible
         <>
             {
                 isDelete ? 

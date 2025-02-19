@@ -5,11 +5,14 @@ import { SupabaseContext } from '../index.tsx'
 import TranslationCardSection from '@/components/NotePage/TranslationCardSection.tsx';
 import { BookOpen, PencilLine } from 'lucide-react';
 import useFileExplorerStore from '@/stores/useFileExplorerStore.ts';
+import { useParams } from 'react-router';
 
 function NotePage() {
   const [selectedSet, setSelectedSet] = useState<SetDetails>({id: -1, name: ""})
   const [isEditMode, setIsEditMode] = useState(false)
   const {tree, setFileExplorerState} = useFileExplorerStore();
+
+  const {bookId} = useParams()
 
   const supabase = useContext(SupabaseContext)
 
@@ -20,20 +23,20 @@ function NotePage() {
   }
 
   useEffect(() => {
-    setFileExplorerState(supabase)
+    setFileExplorerState(supabase, bookId || "")
   }, [])
 
     return (
       <>
-        <div className="flex flex-row w-full h-screen">
+        <div className="flex h-screen overflow-hidden">
           {/* File explorer */}
-          <div className="w-1/6">
-            <FileExplorer language="Chinese" fileExplorerData={tree} setSelectionCallbackFunction={handleSetSelection}/>
-          </div>
+          <aside className="w-1/6">
+            <FileExplorer bookId={bookId || ""} language="Chinese" fileExplorerData={tree} setSelectionCallbackFunction={handleSetSelection}/>
+          </aside>
 
-          <div className="w-5/6 p-4">
-            <div className="flex flex-row">
-              <h1>{selectedSet.name}</h1>
+          <main className="flex-1 p-6">
+            <div className="flex justify-between items-center pb-4 border-b">
+              <h1 className="text-xl font-semibold text-gray-900">{selectedSet.name}</h1>
               {
                 isEditMode ? <BookOpen className="w-5 h-5 hover:bg-sidebar-accent cursor-pointer" onClick={() => setIsEditMode(prev => !prev)}/>
                 : <PencilLine className="w-5 h-5 hover:bg-sidebar-accent cursor-pointer" onClick={() => setIsEditMode(prev => !prev)}/>
@@ -41,7 +44,7 @@ function NotePage() {
               
             </div>
             <TranslationCardSection setId={selectedSet.id} isEditMode={isEditMode}/>
-          </div>
+          </main>
         </div>
       </>
     )

@@ -1,4 +1,4 @@
-import { ArrowUpRight, ChevronRight, File, FilePlus, Folder, Link, MoreHorizontal, StarOff, Trash2 } from "lucide-react"
+import { ChevronRight, File, FilePlus, Folder, Link, MoreHorizontal, StarOff, Trash2 } from "lucide-react"
 import {
   Collapsible,
   CollapsibleContent,
@@ -33,13 +33,13 @@ import { Input } from "../ui/input.tsx";
 import { useContext, useState } from "react";
 import { createNewSet } from "@/api/set.ts";
 import { SupabaseContext } from "@/index.tsx";
-import { SupabaseClient } from "@supabase/supabase-js";
 import useFileExplorerStore from "@/stores/useFileExplorerStore.ts";
 
 type FileExplorerProps = {
   setSelectionCallbackFunction: (setId: number, setName: string) => void;
   fileExplorerData: PageNode[];
-  language: string
+  language: string;
+  bookId: string
 };
 
 const FileExplorer = (props: FileExplorerProps) => {
@@ -54,7 +54,7 @@ const FileExplorer = (props: FileExplorerProps) => {
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
-                <PagesTree pages={props.fileExplorerData} setSelectionFunc={props.setSelectionCallbackFunction}/>
+                <PagesTree bookId={props.bookId} pages={props.fileExplorerData} setSelectionFunc={props.setSelectionCallbackFunction}/>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -70,6 +70,7 @@ const FileExplorer = (props: FileExplorerProps) => {
 type PagesTreeProps = {
   pages: PageNode[];
   setSelectionFunc: (setId: number, setName: string) => void;
+  bookId: string
 }
 
 function PagesTree(props: PagesTreeProps) {
@@ -100,7 +101,7 @@ function PagesTree(props: PagesTreeProps) {
 
     await createNewSet(pageId, values.setName, token)
     // TODO : Error handle
-    setFileExplorerState(supabase)
+    setFileExplorerState(supabase, props.bookId)
     setOpen(false)
   }
 
@@ -108,7 +109,7 @@ function PagesTree(props: PagesTreeProps) {
     <>
       {props.pages.map((page) => (
         <Collapsible key={page.id} className="group/collapsible">
-          <CollapsibleTrigger asChild>
+          <CollapsibleTrigger onClick={()=> console.log("clicked" + page.name)} asChild>
             <SidebarMenuItem>
               <SidebarMenuButton>
                 <ChevronRight className="transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />

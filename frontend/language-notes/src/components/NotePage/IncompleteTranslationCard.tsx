@@ -68,6 +68,7 @@ function IncompleteTranslationCard(props: IncompleteTranslationCardProps) {
     }
     
     return (
+        // className="p-4 break-words overflow-visible"
         <div className="max-w-sm p-4 text-center">
             <input 
                 className="w-full p-2 mb-4 bg-transparent border-b-2 border-gray-300 focus:outline-none focus:border-stone-600"

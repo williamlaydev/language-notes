@@ -24,3 +24,9 @@ type UserDisplayData = {
   name: string;
   imgSrc: string;
 }
+
+type Book = {
+  id: number;
+  name: string;
+  language: string;
+}

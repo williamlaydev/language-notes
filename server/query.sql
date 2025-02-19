@@ -65,7 +65,7 @@ RETURNING *;
 SELECT p.id, p.name
 FROM pages p
 JOIN
-    book b ON b.language = $1
+    book b ON b.id = $1
 JOIN Users u ON p.creator_id = u.uuid
 WHERE
     p.creator_id = $2;
@@ -84,3 +84,17 @@ SET
 WHERE
     id = $1 AND creator_id = $2
 RETURNING *;
+
+-- Books --
+-- name: RetrieveAllBooks :many
+SELECT b.id, b.name, b.language
+FROM book b
+WHERE
+    b.creator_id = $1;
+
+-- name: CreateSingleBook :one
+INSERT INTO book (
+    name, creator_id, language
+) VALUES (
+    $1, $2, $3
+) RETURNING *;

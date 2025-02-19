@@ -7,7 +7,7 @@ import { useNavigate } from "react-router";
 function LoginPage() {
     const supabase = useContext(SupabaseContext)
     
-    let navigate = useNavigate();
+    const navigate = useNavigate();
 
     const handleSignInWithGoogle = async (response) => {
         // TODO: Error handling
@@ -19,32 +19,30 @@ function LoginPage() {
         if (error) {
           console.error("Supabase Auth Error:", error.message);
         } else {
-            navigate("/")
+            navigate("/orientation")
         }
       }
       
     return(
-        <>
-            <div className="flex items-center justify-center min-h-screen">
-                <Card className="w-1/4 h-1/4 text-center">
-                    <CardHeader>
-                        <CardTitle>Welcome to Language Notes</CardTitle>
-                        <CardDescription>
-                            Currently only allowing Google sign ins. Sorry for the inconvenience :(
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex justify-center">
-                        <GoogleLogin 
-                            onSuccess={handleSignInWithGoogle} 
-                            onError={() => console.log("nogood")}
-                        />
-                    </CardContent>
-                    {/* <CardFooter>
-                        <p>Card Footer</p>
-                    </CardFooter> */}
-                </Card>
-            </div>
-        </>
+        <div className="flex items-center justify-center min-h-screen">
+            <Card className="w-1/4 h-1/4 text-center">
+                <CardHeader>
+                    <CardTitle>Welcome to Language Notes</CardTitle>
+                    <CardDescription>
+                        Currently only allowing Google sign ins. Sorry for the inconvenience :(
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="flex justify-center">
+                    <GoogleLogin 
+                        onSuccess={handleSignInWithGoogle} 
+                        onError={() => console.log("nogood")}
+                    />
+                </CardContent>
+                {/* <CardFooter>
+                    <p>Card Footer</p>
+                </CardFooter> */}
+            </Card>
+        </div>
     )
 }
 

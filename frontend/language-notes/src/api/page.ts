@@ -1,6 +1,7 @@
-export async function fetchPages(language: string, token: string) {
+
+export async function fetchPages(bookId: string, token: string) {
     try {
-      const response = await fetch(`http://localhost:8080/book/pages?language=${language}`, {
+      const response = await fetch(`http://localhost:8080/book/${bookId}/pages`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

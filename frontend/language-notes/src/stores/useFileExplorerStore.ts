@@ -5,18 +5,18 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 interface FileExplorerState {
     tree: PageNode[];
-    setFileExplorerState: (supabase: SupabaseClient) => void;
+    setFileExplorerState: (supabase: SupabaseClient, bookId: string) => void;
 }
 
 const useFileExplorerStore = create<FileExplorerState>()((set) => ({
     tree: [],
-    setFileExplorerState: async (supabase: SupabaseClient) => {
-        const tree = await createFileExplorerTree(supabase);
+    setFileExplorerState: async (supabase: SupabaseClient, bookId: string) => {
+        const tree = await createFileExplorerTree(supabase, bookId);
         set(() => ({ tree: tree}))
     },
 }));
 
-const createFileExplorerTree = async (supabase: any): Promise<PageNode[]> => {
+const createFileExplorerTree = async (supabase: any, bookId: string): Promise<PageNode[]> => {
     try {
         const { data, error } = await supabase.auth.getSession();
 
@@ -29,7 +29,8 @@ const createFileExplorerTree = async (supabase: any): Promise<PageNode[]> => {
         }
 
         const token = data.session.access_token || "";
-        const pages = await fetchPages("chinese", token);
+
+        const pages = await fetchPages(bookId, token);
 
         // Fetch sets in parallel
         const setsPromises = pages.map(async (page) => {

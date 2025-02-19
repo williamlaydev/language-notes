@@ -5,6 +5,7 @@ import IncompleteTranslationCard from "./IncompleteTranslationCard";
 import { SupabaseContext } from "@/index";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "../ui/resizable";
 import EditableTranslationCard from "./EditableTranslationCard";
+import { ScrollArea } from "../ui/scroll-area";
 
 type TranslationCardSectionProps = {
     setId: number
@@ -24,7 +25,12 @@ function TranslationCardSection(props: TranslationCardSectionProps) {
 
             const token = data.session.access_token || "";
             const res = await fetchTranslationCards(props.setId, token);
-            setTranslationCards(res);
+            if (res == null) {
+              setTranslationCards([]);
+              return
+            }
+
+            setTranslationCards(res)
         } catch (error) {
             console.error("Error initialising translation cards section: " + error);
         }
@@ -39,59 +45,70 @@ function TranslationCardSection(props: TranslationCardSectionProps) {
         
     }, [initialisePage, props.setId]);
 
+    if (translationCards.length == 0) {
+      return (
+        <>
+          <p>Get started here</p>
+          <IncompleteTranslationCard
+              language={"chinese"}
+              refreshPageFunc={initialisePage}
+              setId={props.setId}
+          />
+        </>
+      )
+    }
+
     return (
       <>
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel>
-            <div className="grid grid-cols-9 grid-rows-5">
-            {
-              props.isEditMode ? 
-                translationCards.map(card => {
-                  return (
-                    <EditableTranslationCard
-                      key={card.id}
-                      setId={props.setId}
-                      cardId={card.id}
-                      english={card.english}
-                      meaning={card.meaning}
-                      translated={card.translated}
-                      refreshPageFunc={initialisePage}
-                    />
-                  )
-                })
-              :
+          <ScrollArea className="h-full] w-full pb-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 auto-rows-auto gap-4">
+              {props.isEditMode ? (
+                translationCards.map((card) => (
+                  <EditableTranslationCard
+                    key={card.id}
+                    setId={props.setId}
+                    cardId={card.id}
+                    english={card.english}
+                    meaning={card.meaning}
+                    translated={card.translated}
+                    refreshPageFunc={initialisePage}
+                  />
+                ))
+              ) : (
                 <>
                   <IncompleteTranslationCard
                     language={"chinese"}
                     refreshPageFunc={initialisePage}
                     setId={props.setId}
+                    
                   />
-                  {translationCards.map(card => {
-                    return (
-                      <CompletedTranslationCard
-                        key={card.id}
-                        language={card.language}
-                        english={card.english}
-                        meaning={card.meaning}
-                        translated={card.translated}
-                      />
-                    )
-                  })}
+                  {translationCards.map((card) => (
+                    <CompletedTranslationCard
+                      key={card.id}
+                      language={card.language}
+                      english={card.english}
+                      meaning={card.meaning}
+                      translated={card.translated}
+                     
+                    />
+                  ))}
                 </>
-            }
+              )}
             </div>
+            </ScrollArea>
           </ResizablePanel>
           <ResizableHandle />
-          <ResizablePanel>
+          {/* <ResizablePanel>
             <div>
-              <h1>
-                Sentences
-              </h1>
+              <h1>Coming soon...</h1>
             </div>
-          </ResizablePanel>
+          </ResizablePanel> */}
         </ResizablePanelGroup>
       </>
-    )
+    );
+
 }
 
 
