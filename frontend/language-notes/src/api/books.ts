@@ -1,7 +1,4 @@
-import { useContext } from "react";
-import { SupabaseContext } from "..";
-
-export async function createBook(bookInfo: {name: string, language: string}, token: string): Promise<string> {
+export async function createBook(bookInfo: {name: string, language: string, pageName: string, setName: string}, token: string): Promise<string> {
     try {
         const response = await fetch(`http://localhost:8080/book`, {
             method: 'POST',
@@ -39,9 +36,9 @@ export async function fetchAllBooks(token: string) {
         })
 
         if (!response.ok) {
-            throw new Error("Failed to create book")
+            throw new Error("Failed to fetch book")
         }
-        
+
         const res = await response.json()
         return res.map((book: {id: number, name: string, language: string}) => (
             {
@@ -52,6 +49,6 @@ export async function fetchAllBooks(token: string) {
         ))
     } catch (error) {
         console.error("Error fetching books: ", error);
-    return false
+        return []
     }
 }

@@ -100,14 +100,21 @@ func (h *PageHandler) PostPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate request
+	if len(reqBody.Name) <= 0 || len(reqBody.Name) > 12 {
+		http.Error(w, "Invalid page name", http.StatusBadRequest)
+		return
+	}
+
 	s := service.NewPageService(h.conn, r.Context(), logger)
 
-	if err := s.CreateNewPage(uuid, reqBody.Name, reqBody.BookID); err != nil {
+	newPage, err := s.CreateNewPage(uuid, reqBody.Name, reqBody.BookID)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
-	// TODO: Validate the request
+	json.NewEncoder(w).Encode(newPage)
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"languageNotes/service"
 	"net/http"
+	"slices"
 	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -90,8 +91,6 @@ func (h *BookHandler) GetAllBooks(w http.ResponseWriter, r *http.Request) {
 		zap.String("uuid", uuid),
 	)
 
-	// TODO: Validate request
-
 	s := service.NewBookService(h.conn, r.Context(), logger)
 
 	res, err := s.RetrieveAllBooks(uuid)
@@ -130,6 +129,19 @@ func (h *BookHandler) PostBook(w http.ResponseWriter, r *http.Request) {
 	var reqBody *PostBookRequestBody
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	// Validate request
+	if len(reqBody.Name) <= 0 || len(reqBody.Name) > 12 {
+		http.Error(w, "Invalid book name", http.StatusBadRequest)
+		return
+	}
+
+	languageList := []string{"Chinese", "Japanese", "Korean"}
+
+	if !slices.Contains(languageList, reqBody.Language) {
+		http.Error(w, "Invalid language", http.StatusBadRequest)
 		return
 	}
 

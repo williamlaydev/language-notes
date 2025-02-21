@@ -38,7 +38,7 @@ func (s *Page) RetrieveSetsForPage(userID string, pageId int) ([]db.RetrieveSets
 	return res, nil
 }
 
-func (s *Page) CreateNewPage(userID string, name string, bookId int64) error {
+func (s *Page) CreateNewPage(userID string, name string, bookId int64) (db.Page, error) {
 	store := db.New(s.conn)
 
 	u, _ := uuid.Parse(userID)
@@ -49,11 +49,11 @@ func (s *Page) CreateNewPage(userID string, name string, bookId int64) error {
 	}
 
 	// TODO: Handle return
-	_, err := store.CreateSinglePage(s.context, p)
+	newPage, err := store.CreateSinglePage(s.context, p)
 
 	if err != nil {
-		return err
+		return db.Page{}, err
 	}
 
-	return nil
+	return newPage, nil
 }

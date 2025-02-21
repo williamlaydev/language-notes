@@ -47,14 +47,16 @@ function TranslationCardSection(props: TranslationCardSectionProps) {
 
     if (translationCards.length == 0) {
       return (
-        <>
-          <p>Get started here</p>
-          <IncompleteTranslationCard
-              language={"chinese"}
-              refreshPageFunc={initialisePage}
-              setId={props.setId}
-          />
-        </>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 auto-rows-auto gap-4">
+          <div>
+            <p>Translate the first word!</p>
+            <IncompleteTranslationCard
+                language={"chinese"}
+                refreshPageFunc={initialisePage}
+                setId={props.setId}
+            />
+          </div>
+        </div>
       )
     }
 
@@ -65,17 +67,26 @@ function TranslationCardSection(props: TranslationCardSectionProps) {
           <ScrollArea className="h-full] w-full pb-1">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 auto-rows-auto gap-4">
               {props.isEditMode ? (
-                translationCards.map((card) => (
-                  <EditableTranslationCard
-                    key={card.id}
-                    setId={props.setId}
-                    cardId={card.id}
-                    english={card.english}
-                    meaning={card.meaning}
-                    translated={card.translated}
-                    refreshPageFunc={initialisePage}
-                  />
-                ))
+                <>
+                  <div className="max-w-sm p-4 text-center">
+                    <div className="flex flex-col items-center text-center">
+                        <p></p>
+                        <p></p>
+                        <p></p>
+                    </div>
+                  </div>
+                  {translationCards.map((card) => (
+                    <EditableTranslationCard
+                      key={card.id}
+                      setId={props.setId}
+                      cardId={card.id}
+                      english={card.english}
+                      meaning={card.meaning}
+                      translated={card.translated}
+                      refreshPageFunc={initialisePage}
+                    />
+                  ))}
+                </>
               ) : (
                 <>
                   <IncompleteTranslationCard

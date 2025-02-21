@@ -70,11 +70,11 @@ function EditableTranslationCard(props: EditableTranslationCardProps) {
             {
                 isDelete ? 
                     <div className="flex flex-col items-center text-center">
-                        <Button className="w-3/5 h-6 mt-3" onClick={() => handleDelete(props.cardId)} size={"sm"} variant="destructive">Delete</Button>
-                        <Button className="w-3/5 h-6 mt-1" onClick={() => setIsDelete(prev => !prev)} size={"sm"} variant="secondary">Undo</Button>
+                        <Button className="w-3/5 h-6 mt-6" onClick={() => handleDelete(props.cardId)} size={"sm"} variant="destructive">Delete</Button>
+                        <Button className="w-3/5 h-6 mt-1" onClick={() => setIsDelete(prev => !prev)} size={"sm"} variant="secondary">Back</Button>
                     </div>
                 :
-                    <div className="relative flex flex-col items-center text-center">
+                    <div className="relative flex flex-col items-center max-w-sm p-4 text-center">
                         <Trash2 size={12} className="absolute top-2 right-2 cursor-pointer hover:bg-sidebar-accent" onClick={() => setIsDelete(prev => !prev)}/>
                         <input 
                             type="text"

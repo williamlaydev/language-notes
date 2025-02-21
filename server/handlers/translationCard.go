@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"languageNotes/service"
 	"net/http"
+	"slices"
 	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -69,7 +70,18 @@ func (h *TranslationHandler) PostTranslate(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// TODO: Validate request
+	// Validate request
+	if len(reqBody.English) <= 0 || len(reqBody.English) > 12 {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	languageList := []string{"Chinese", "Japanese", "Korean"}
+
+	if !slices.Contains(languageList, reqBody.Language) {
+		http.Error(w, "Invalid language", http.StatusBadRequest)
+		return
+	}
 
 	s := service.NewTranslationService(h.conn, r.Context(), logger)
 
@@ -115,8 +127,6 @@ func (h *TranslationHandler) GetTranslationCards(w http.ResponseWriter, r *http.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	// TODO: Validate request
 
 	// Create new service and call the relevant method
 	s := service.NewTranslationService(h.conn, r.Context(), logger)
@@ -168,6 +178,22 @@ func (h *TranslationHandler) PatchTranslationCard(w http.ResponseWriter, r *http
 	var reqBody *patchTranslationCardRequestBody
 
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	// Validate request
+	if len(reqBody.English) <= 0 || len(reqBody.English) > 12 {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if len(reqBody.Meaning) <= 0 || len(reqBody.Meaning) > 12 {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if len(reqBody.Translated) <= 0 || len(reqBody.Translated) > 12 {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}

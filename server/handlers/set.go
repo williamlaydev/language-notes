@@ -51,7 +51,12 @@ func (h *SetHandler) PostSet(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	// TODO: Validate the request
+
+	// Validate request
+	if len(reqBody.Name) <= 0 || len(reqBody.Name) > 12 {
+		http.Error(w, "Invalid set name", http.StatusBadRequest)
+		return
+	}
 
 	s := service.NewSetService(h.conn, r.Context(), logger)
 
