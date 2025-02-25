@@ -1,5 +1,5 @@
 export async function fetchTranslationCards(setId: number, token: string): Promise<TranslationCard[]> {
-    const url = `http://localhost:8080/set/${setId}/translation-cards`;
+    const url = `${import.meta.env.VITE_SERVER_URL}/set/${setId}/translation-cards`;
   
     try {
       const response = await fetch(url, {
@@ -24,7 +24,7 @@ export async function fetchTranslationCards(setId: number, token: string): Promi
 };
 
 export async function translateEnglishWord(english: string, language: string, token: string, setId: number) {
-  await fetch("http://localhost:8080/translate", {
+  await fetch("${import.meta.env.VITE_SERVER_URL}/translate", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -46,7 +46,7 @@ export async function translateEnglishWord(english: string, language: string, to
 };
 
 export async function updateTranslationCard(english: string, meaning: string, translated: string, cardId: number, token: string) {
-  await fetch(`http://localhost:8080/translation-card/${cardId}`, {
+  await fetch(`${import.meta.env.VITE_SERVER_URL}/translation-card/${cardId}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -61,7 +61,7 @@ export async function updateTranslationCard(english: string, meaning: string, tr
 }
 
 export async function deleteTranslationCard(cardId: number, token: string) {
-  await fetch(`http://localhost:8080/translation-card/${cardId}`, {
+  await fetch(`${import.meta.env.VITE_SERVER_URL}/translation-card/${cardId}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",

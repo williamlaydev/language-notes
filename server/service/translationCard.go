@@ -98,10 +98,16 @@ func (s *TranslationCard) UpdateTranslationCard(userID string, cardID int, engli
 	return nil
 }
 
-func (s *TranslationCard) DeleteTranslationCard(cardID int) error {
+func (s *TranslationCard) DeleteTranslationCard(cardID int, userID string) error {
 	store := db.New(s.conn)
+	u, _ := uuid.Parse(userID)
 
-	if err := store.DeleteTranslationCard(s.context, int64(cardID)); err != nil {
+	p := db.DeleteTranslationCardParams{
+		ID:        int64(cardID),
+		CreatorID: pgtype.UUID{Bytes: u, Valid: true},
+	}
+
+	if err := store.DeleteTranslationCard(s.context, p); err != nil {
 		return err
 	}
 

@@ -8,7 +8,7 @@ interface BookData {
 }
 
 const useCurrentBookStore = create<BookData>()((set) => ({
-    id: "",
+    id: -1,
     name: "",
     language: "",
     setCurrentBookData: async (book: Book) => {

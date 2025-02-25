@@ -39,3 +39,19 @@ func (s *Set) CreateNewSet(userID string, name string, pageId int64) error {
 
 	return nil
 }
+
+func (s *Set) DeleteSet(setID int, userID string) error {
+	store := db.New(s.conn)
+	u, _ := uuid.Parse(userID)
+
+	p := db.DeleteSetParams{
+		ID:        int64(setID),
+		CreatorID: pgtype.UUID{Bytes: u, Valid: true},
+	}
+
+	if err := store.DeleteSet(s.context, p); err != nil {
+		return err
+	}
+
+	return nil
+}

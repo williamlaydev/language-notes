@@ -1,6 +1,6 @@
 export async function fetchSets(pageId: number, token: string): Promise<SetDetails[]> {
     try {
-      const response = await fetch(`http://localhost:8080/page/${pageId}/sets`, {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/page/${pageId}/sets`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -31,7 +31,7 @@ export async function createNewSet(pageId: number, name: string, token: string):
       pageId: pageId
     }
 
-    const response = await fetch(`http://localhost:8080/set`, {
+    const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/set`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -49,4 +49,14 @@ export async function createNewSet(pageId: number, name: string, token: string):
     console.error("Error creating new set:", error);
     return false
   }
+}
+
+export async function deleteSet(setId: number, token: string) {
+  await fetch(`${import.meta.env.VITE_SERVER_URL}/set/${setId}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    }
+  })
 }

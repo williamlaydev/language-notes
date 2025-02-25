@@ -1,6 +1,6 @@
 export async function createBook(bookInfo: {name: string, language: string, pageName: string, setName: string}, token: string): Promise<string> {
     try {
-        const response = await fetch(`http://localhost:8080/book`, {
+        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/book`, {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
@@ -28,7 +28,7 @@ export async function createBook(bookInfo: {name: string, language: string, page
 
 export async function fetchAllBooks(token: string) {
     try {
-        const response = await fetch(`http://localhost:8080/book`, {
+        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/book`, {
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`

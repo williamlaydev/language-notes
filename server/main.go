@@ -71,6 +71,9 @@ func main() {
 	mux.HandleFunc("PATCH /translation-card/{cardID}", handlers.NewTranslationHandler(connPool).PatchTranslationCard)
 
 	mux.HandleFunc("DELETE /translation-card/{cardID}", handlers.NewTranslationHandler(connPool).DeleteTranslationCard)
+	mux.HandleFunc("DELETE /page/{pageID}", handlers.NewPageHandler(connPool).DeletePage)
+	mux.HandleFunc("DELETE /set/{setID}", handlers.NewSetHandler(connPool).DeleteSet)
+
 	// Middlewares active
 	middlewaresList := []middlewares.Middleware{
 		middlewares.RequestID(),

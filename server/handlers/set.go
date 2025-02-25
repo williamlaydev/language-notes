@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"languageNotes/service"
 	"net/http"
+	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
@@ -62,6 +63,45 @@ func (h *SetHandler) PostSet(w http.ResponseWriter, r *http.Request) {
 
 	if err := s.CreateNewSet(uuid, reqBody.Name, reqBody.PageID); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *SetHandler) DeleteSet(w http.ResponseWriter, r *http.Request) {
+	// Create a logger
+	logger, err := createLoggerForRequest(r)
+
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Retrieve UUID from context
+	uuid, err := retrieveUUIDfromContext(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Entry log
+	logger.Info(
+		"DeleteSet",
+		zap.String("uuid", uuid),
+	)
+
+	// Retrieve value from the path
+	setID, err := strconv.Atoi(r.PathValue("setID"))
+	if err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	s := service.NewSetService(h.conn, r.Context(), logger)
+
+	if err := s.DeleteSet(setID, uuid); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 

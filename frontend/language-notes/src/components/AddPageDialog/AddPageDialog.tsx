@@ -17,10 +17,12 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { createNewPage } from "@/api/page";
 import useFileExplorerStore from "@/stores/useFileExplorerStore";
+import useCurrentBookStore from "@/stores/useCurrentBookStore";
 
 function AddPageDialog() {
     const [open, setOpen] = useState(false);
     const {setFileExplorerState} = useFileExplorerStore();
+    const {id} = useCurrentBookStore();
     const supabase = useContext(SupabaseContext)
     // const {toast} = useToast()
 
@@ -34,8 +36,7 @@ function AddPageDialog() {
         }
         const token = data?.session?.access_token || ""
 
-        // TODO: Use this once bookid is sorted const isSuccess = await createNewSet(bookId, values.pageName, token)
-        await createNewPage(2, values.pageName, token)
+        await createNewPage(id, values.pageName, token)
         // if (isSuccess) {
             
         //     return toast({
@@ -47,7 +48,7 @@ function AddPageDialog() {
         //         description: `Unexpected error has occurred!`
         //     })
         // }
-        setFileExplorerState(supabase)
+        setFileExplorerState(supabase, id.toString())
          // TODO : Error handle
         setOpen(false)
     }

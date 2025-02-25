@@ -76,7 +76,7 @@ func (h *TranslationHandler) PostTranslate(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	languageList := []string{"Chinese", "Japanese", "Korean"}
+	languageList := []string{"chinese", "japanese", "korean"}
 
 	if !slices.Contains(languageList, reqBody.Language) {
 		http.Error(w, "Invalid language", http.StatusBadRequest)
@@ -239,8 +239,10 @@ func (h *TranslationHandler) DeleteTranslationCard(w http.ResponseWriter, r *htt
 
 	s := service.NewTranslationService(h.conn, r.Context(), logger)
 
-	if err := s.DeleteTranslationCard(cardID); err != nil {
+	if err := s.DeleteTranslationCard(cardID, uuid); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	w.WriteHeader(http.StatusOK)
 }

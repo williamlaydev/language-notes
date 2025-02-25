@@ -57,3 +57,19 @@ func (s *Page) CreateNewPage(userID string, name string, bookId int64) (db.Page,
 
 	return newPage, nil
 }
+
+func (s *Page) DeletePage(pageID int, userID string) error {
+	store := db.New(s.conn)
+	u, _ := uuid.Parse(userID)
+
+	p := db.DeletePageParams{
+		ID:        int64(pageID),
+		CreatorID: pgtype.UUID{Bytes: u, Valid: true},
+	}
+
+	if err := store.DeletePage(s.context, p); err != nil {
+		return err
+	}
+
+	return nil
+}

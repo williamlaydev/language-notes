@@ -1,7 +1,7 @@
 
 export async function fetchPages(bookId: string, token: string) {
     try {
-      const response = await fetch(`http://localhost:8080/book/${bookId}/pages`, {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/book/${bookId}/pages`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -28,7 +28,7 @@ export async function fetchPages(bookId: string, token: string) {
 
 export async function createNewPage(bookId: number, name: string, token: string): Promise<string> {
   try {
-    const response = await fetch(`http://localhost:8080/page`, {
+    const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/page`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -50,4 +50,14 @@ export async function createNewPage(bookId: number, name: string, token: string)
     console.error("Error:", error);
     return ""
   }
+}
+
+export async function deletePage(pageId: number, token: string) {
+  await fetch(`${import.meta.env.VITE_SERVER_URL}/page/${pageId}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    }
+  })
 }

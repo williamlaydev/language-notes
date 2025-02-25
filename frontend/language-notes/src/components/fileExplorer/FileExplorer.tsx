@@ -34,12 +34,15 @@ import { useContext, useState } from "react";
 import { createNewSet } from "@/api/set.ts";
 import { SupabaseContext } from "@/index.tsx";
 import useFileExplorerStore from "@/stores/useFileExplorerStore.ts";
+import { deletePage } from "@/api/page.ts";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 type FileExplorerProps = {
   setSelectionCallbackFunction: (setId: number, setName: string) => void;
   fileExplorerData: PageNode[];
   language: string;
-  bookId: string
+  bookId: string;
+  refreshFileExplorer: () => void;
 };
 
 const FileExplorer = (props: FileExplorerProps) => {
@@ -54,7 +57,7 @@ const FileExplorer = (props: FileExplorerProps) => {
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
-                <PagesTree bookId={props.bookId} pages={props.fileExplorerData} setSelectionFunc={props.setSelectionCallbackFunction}/>
+                <PagesTree refreshFileExplorer={props.refreshFileExplorer} bookId={props.bookId} pages={props.fileExplorerData} setSelectionFunc={props.setSelectionCallbackFunction}/>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -71,6 +74,7 @@ type PagesTreeProps = {
   pages: PageNode[];
   setSelectionFunc: (setId: number, setName: string) => void;
   bookId: string
+  refreshFileExplorer: () => void;
 }
 
 function PagesTree(props: PagesTreeProps) {
@@ -103,6 +107,17 @@ function PagesTree(props: PagesTreeProps) {
     // TODO : Error handle
     setFileExplorerState(supabase, props.bookId)
     setOpen(false)
+  }
+
+  async function handleDeletePage(pageId: number) {
+    const { data, error } = await supabase.auth.getSession();
+    if (error || !data.session) {
+        throw new Error("Error fetching session: " + (error?.message || "No session data"));
+    }
+
+    const token = data.session.access_token || "";
+    await deletePage(pageId, token)
+    props.refreshFileExplorer()
   }
 
   return (
@@ -162,9 +177,9 @@ function PagesTree(props: PagesTreeProps) {
                     </DialogContent>
                   </Dialog>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleDeletePage(page.id)}>
                     <Trash2 className="text-muted-foreground" />
-                    <span>Delete</span>
+                    <span >Delete</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

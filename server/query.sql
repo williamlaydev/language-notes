@@ -31,7 +31,7 @@ RETURNING *;
 -- name: DeleteTranslationCard :exec
 DELETE FROM translation_cards
 WHERE 
-    id = $1;
+    id = $1 AND creator_id = $2;
 
 -- Sets --
 
@@ -59,6 +59,11 @@ WHERE
     id = $1 AND creator_id = $2
 RETURNING *;
 
+-- name: DeleteSet :exec
+DELETE FROM sets
+WHERE 
+    id = $1 AND creator_id = $2;
+
 -- Pages --
 
 -- name: RetrievePagesForBook :many
@@ -85,6 +90,10 @@ WHERE
     id = $1 AND creator_id = $2
 RETURNING *;
 
+-- name: DeletePage :exec
+DELETE FROM pages
+WHERE 
+    id = $1 AND creator_id = $2;
 -- Books --
 -- name: RetrieveAllBooks :many
 SELECT b.id, b.name, b.language

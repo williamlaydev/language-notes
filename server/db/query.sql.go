@@ -132,14 +132,51 @@ func (q *Queries) CreateTranslationCard(ctx context.Context, arg CreateTranslati
 	return i, err
 }
 
+const deletePage = `-- name: DeletePage :exec
+DELETE FROM pages
+WHERE 
+    id = $1 AND creator_id = $2
+`
+
+type DeletePageParams struct {
+	ID        int64       `json:"id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+}
+
+func (q *Queries) DeletePage(ctx context.Context, arg DeletePageParams) error {
+	_, err := q.db.Exec(ctx, deletePage, arg.ID, arg.CreatorID)
+	return err
+}
+
+const deleteSet = `-- name: DeleteSet :exec
+DELETE FROM sets
+WHERE 
+    id = $1 AND creator_id = $2
+`
+
+type DeleteSetParams struct {
+	ID        int64       `json:"id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+}
+
+func (q *Queries) DeleteSet(ctx context.Context, arg DeleteSetParams) error {
+	_, err := q.db.Exec(ctx, deleteSet, arg.ID, arg.CreatorID)
+	return err
+}
+
 const deleteTranslationCard = `-- name: DeleteTranslationCard :exec
 DELETE FROM translation_cards
 WHERE 
-    id = $1
+    id = $1 AND creator_id = $2
 `
 
-func (q *Queries) DeleteTranslationCard(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteTranslationCard, id)
+type DeleteTranslationCardParams struct {
+	ID        int64       `json:"id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+}
+
+func (q *Queries) DeleteTranslationCard(ctx context.Context, arg DeleteTranslationCardParams) error {
+	_, err := q.db.Exec(ctx, deleteTranslationCard, arg.ID, arg.CreatorID)
 	return err
 }
 

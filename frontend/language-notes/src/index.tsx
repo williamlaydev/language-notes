@@ -10,15 +10,16 @@ import LoginPage from './pages/LoginPage';
 import BookCreationPage from './pages/BookCreationPage';
 import OrientationPage from './pages/OrientationPage';
 
-const supabaseUrl = 'https://hyafqkgqapxjrruqqbbj.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5YWZxa2dxYXB4anJydXFxYmJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ1MjM0MjQsImV4cCI6MjA1MDA5OTQyNH0.5CvfVYZyHMgLS3_yWqvCsokmqvKnd5Zmk9JCYpFRx6Y';
+// Use environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const SupabaseContext = createContext(supabase);
 
 const App = () => {
   return (
-    <GoogleOAuthProvider clientId="890406772240-u05db9b7e0ue0afbvam0mc7olpo2t8pv.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <SupabaseContext.Provider value={supabase}>
         <BrowserRouter>
           <Routes>

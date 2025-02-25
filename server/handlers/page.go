@@ -53,8 +53,6 @@ func (h *PageHandler) GetAllSets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Authenticate user
-
 	// TODO: Validate request
 
 	s := service.NewPageService(h.conn, r.Context(), logger)
@@ -117,4 +115,43 @@ func (h *PageHandler) PostPage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(newPage)
+}
+
+func (h *PageHandler) DeletePage(w http.ResponseWriter, r *http.Request) {
+	// Create a logger
+	logger, err := createLoggerForRequest(r)
+
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Retrieve UUID from context
+	uuid, err := retrieveUUIDfromContext(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Entry log
+	logger.Info(
+		"DeletePage",
+		zap.String("uuid", uuid),
+	)
+
+	// Retrieve value from the path
+	pageID, err := strconv.Atoi(r.PathValue("pageID"))
+	if err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	s := service.NewPageService(h.conn, r.Context(), logger)
+
+	if err := s.DeletePage(pageID, uuid); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
