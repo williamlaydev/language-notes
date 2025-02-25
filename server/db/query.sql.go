@@ -11,6 +11,86 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createSingleBook = `-- name: CreateSingleBook :one
+INSERT INTO book (
+    name, creator_id, language
+) VALUES (
+    $1, $2, $3
+) RETURNING id, created_at, name, language, creator_id
+`
+
+type CreateSingleBookParams struct {
+	Name      string      `json:"name"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+	Language  string      `json:"language"`
+}
+
+func (q *Queries) CreateSingleBook(ctx context.Context, arg CreateSingleBookParams) (Book, error) {
+	row := q.db.QueryRow(ctx, createSingleBook, arg.Name, arg.CreatorID, arg.Language)
+	var i Book
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Language,
+		&i.CreatorID,
+	)
+	return i, err
+}
+
+const createSinglePage = `-- name: CreateSinglePage :one
+INSERT INTO pages (
+    name, book_id, creator_id
+) VALUES (
+    $1, $2, $3
+) RETURNING id, created_at, creator_id, name, book_id
+`
+
+type CreateSinglePageParams struct {
+	Name      string      `json:"name"`
+	BookID    int64       `json:"book_id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+}
+
+func (q *Queries) CreateSinglePage(ctx context.Context, arg CreateSinglePageParams) (Page, error) {
+	row := q.db.QueryRow(ctx, createSinglePage, arg.Name, arg.BookID, arg.CreatorID)
+	var i Page
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.CreatorID,
+		&i.Name,
+		&i.BookID,
+	)
+	return i, err
+}
+
+const createSingleSet = `-- name: CreateSingleSet :one
+INSERT INTO sets (
+    name, page_id, creator_id
+) VALUES (
+    $1, $2, $3
+) RETURNING id, name, page_id, creator_id
+`
+
+type CreateSingleSetParams struct {
+	Name      string      `json:"name"`
+	PageID    int64       `json:"page_id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+}
+
+func (q *Queries) CreateSingleSet(ctx context.Context, arg CreateSingleSetParams) (Set, error) {
+	row := q.db.QueryRow(ctx, createSingleSet, arg.Name, arg.PageID, arg.CreatorID)
+	var i Set
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.PageID,
+		&i.CreatorID,
+	)
+	return i, err
+}
+
 const createTranslationCard = `-- name: CreateTranslationCard :one
 INSERT INTO translation_cards (
     english, meaning, translated, set_id, language, creator_id
@@ -52,9 +132,176 @@ func (q *Queries) CreateTranslationCard(ctx context.Context, arg CreateTranslati
 	return i, err
 }
 
+const deletePage = `-- name: DeletePage :exec
+DELETE FROM pages
+WHERE 
+    id = $1 AND creator_id = $2
+`
+
+type DeletePageParams struct {
+	ID        int64       `json:"id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+}
+
+func (q *Queries) DeletePage(ctx context.Context, arg DeletePageParams) error {
+	_, err := q.db.Exec(ctx, deletePage, arg.ID, arg.CreatorID)
+	return err
+}
+
+const deleteSet = `-- name: DeleteSet :exec
+DELETE FROM sets
+WHERE 
+    id = $1 AND creator_id = $2
+`
+
+type DeleteSetParams struct {
+	ID        int64       `json:"id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+}
+
+func (q *Queries) DeleteSet(ctx context.Context, arg DeleteSetParams) error {
+	_, err := q.db.Exec(ctx, deleteSet, arg.ID, arg.CreatorID)
+	return err
+}
+
+const deleteTranslationCard = `-- name: DeleteTranslationCard :exec
+DELETE FROM translation_cards
+WHERE 
+    id = $1 AND creator_id = $2
+`
+
+type DeleteTranslationCardParams struct {
+	ID        int64       `json:"id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+}
+
+func (q *Queries) DeleteTranslationCard(ctx context.Context, arg DeleteTranslationCardParams) error {
+	_, err := q.db.Exec(ctx, deleteTranslationCard, arg.ID, arg.CreatorID)
+	return err
+}
+
+const retrieveAllBooks = `-- name: RetrieveAllBooks :many
+SELECT b.id, b.name, b.language
+FROM book b
+WHERE
+    b.creator_id = $1
+`
+
+type RetrieveAllBooksRow struct {
+	ID       int64  `json:"id"`
+	Name     string `json:"name"`
+	Language string `json:"language"`
+}
+
+// Books --
+func (q *Queries) RetrieveAllBooks(ctx context.Context, creatorID pgtype.UUID) ([]RetrieveAllBooksRow, error) {
+	rows, err := q.db.Query(ctx, retrieveAllBooks, creatorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RetrieveAllBooksRow
+	for rows.Next() {
+		var i RetrieveAllBooksRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.Language); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const retrievePagesForBook = `-- name: RetrievePagesForBook :many
+
+SELECT p.id, p.name
+FROM pages p
+JOIN
+    book b ON b.id = $1
+JOIN Users u ON p.creator_id = u.uuid
+WHERE
+    p.creator_id = $2
+`
+
+type RetrievePagesForBookParams struct {
+	ID        int64       `json:"id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+}
+
+type RetrievePagesForBookRow struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+// Pages --
+func (q *Queries) RetrievePagesForBook(ctx context.Context, arg RetrievePagesForBookParams) ([]RetrievePagesForBookRow, error) {
+	rows, err := q.db.Query(ctx, retrievePagesForBook, arg.ID, arg.CreatorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RetrievePagesForBookRow
+	for rows.Next() {
+		var i RetrievePagesForBookRow
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const retrieveSetsForPage = `-- name: RetrieveSetsForPage :many
+
+SELECT s.id, s.name, s.page_id
+FROM sets s
+JOIN
+    pages p ON s.page_id = p.id
+JOIN Users u ON s.creator_id = u.uuid
+WHERE
+    s.page_id = $1 AND s.creator_id = $2
+`
+
+type RetrieveSetsForPageParams struct {
+	PageID    int64       `json:"page_id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+}
+
+type RetrieveSetsForPageRow struct {
+	ID     int64  `json:"id"`
+	Name   string `json:"name"`
+	PageID int64  `json:"page_id"`
+}
+
+// Sets --
+func (q *Queries) RetrieveSetsForPage(ctx context.Context, arg RetrieveSetsForPageParams) ([]RetrieveSetsForPageRow, error) {
+	rows, err := q.db.Query(ctx, retrieveSetsForPage, arg.PageID, arg.CreatorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RetrieveSetsForPageRow
+	for rows.Next() {
+		var i RetrieveSetsForPageRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.PageID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const retrieveTranslationCardsForSet = `-- name: RetrieveTranslationCardsForSet :many
 
-SELECT tc.id, tc.creator_id, tc.english, tc.meaning, tc.translated, tc.created_at, tc.set_id, tc.language
+SELECT tc.id, tc.english, tc.meaning, tc.translated, tc.created_at, tc.set_id, tc.language
 FROM translation_cards tc
 JOIN
     Sets s ON tc.set_id = s.id
@@ -71,7 +318,6 @@ type RetrieveTranslationCardsForSetParams struct {
 
 type RetrieveTranslationCardsForSetRow struct {
 	ID         int64              `json:"id"`
-	CreatorID  pgtype.UUID        `json:"creator_id"`
 	English    string             `json:"english"`
 	Meaning    string             `json:"meaning"`
 	Translated string             `json:"translated"`
@@ -92,7 +338,6 @@ func (q *Queries) RetrieveTranslationCardsForSet(ctx context.Context, arg Retrie
 		var i RetrieveTranslationCardsForSetRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.CreatorID,
 			&i.English,
 			&i.Meaning,
 			&i.Translated,
@@ -108,4 +353,100 @@ func (q *Queries) RetrieveTranslationCardsForSet(ctx context.Context, arg Retrie
 		return nil, err
 	}
 	return items, nil
+}
+
+const updatePage = `-- name: UpdatePage :one
+UPDATE pages
+SET
+    name = COALESCE(NULLIF($3::text, ''), name)
+WHERE
+    id = $1 AND creator_id = $2
+RETURNING id, created_at, creator_id, name, book_id
+`
+
+type UpdatePageParams struct {
+	ID        int64       `json:"id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+	Name      string      `json:"name"`
+}
+
+func (q *Queries) UpdatePage(ctx context.Context, arg UpdatePageParams) (Page, error) {
+	row := q.db.QueryRow(ctx, updatePage, arg.ID, arg.CreatorID, arg.Name)
+	var i Page
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.CreatorID,
+		&i.Name,
+		&i.BookID,
+	)
+	return i, err
+}
+
+const updateSet = `-- name: UpdateSet :one
+UPDATE sets
+SET
+    name = COALESCE(NULLIF($3::text, ''), name)
+WHERE
+    id = $1 AND creator_id = $2
+RETURNING id, name, page_id, creator_id
+`
+
+type UpdateSetParams struct {
+	ID        int64       `json:"id"`
+	CreatorID pgtype.UUID `json:"creator_id"`
+	Name      string      `json:"name"`
+}
+
+func (q *Queries) UpdateSet(ctx context.Context, arg UpdateSetParams) (Set, error) {
+	row := q.db.QueryRow(ctx, updateSet, arg.ID, arg.CreatorID, arg.Name)
+	var i Set
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.PageID,
+		&i.CreatorID,
+	)
+	return i, err
+}
+
+const updateTranslationCard = `-- name: UpdateTranslationCard :one
+UPDATE translation_cards
+SET
+    meaning = COALESCE(NULLIF($3::text, ''), meaning),
+    translated = COALESCE(NULLIF($4::text, ''), translated),
+    english = COALESCE(NULLIF($5::Text, ''), english)
+WHERE
+    id = $1 AND creator_id = $2
+RETURNING id, created_at, english, meaning, translated, set_id, language, creator_id
+`
+
+type UpdateTranslationCardParams struct {
+	ID         int64       `json:"id"`
+	CreatorID  pgtype.UUID `json:"creator_id"`
+	Meaning    string      `json:"meaning"`
+	Translated string      `json:"translated"`
+	English    string      `json:"english"`
+}
+
+func (q *Queries) UpdateTranslationCard(ctx context.Context, arg UpdateTranslationCardParams) (TranslationCard, error) {
+	row := q.db.QueryRow(ctx, updateTranslationCard,
+		arg.ID,
+		arg.CreatorID,
+		arg.Meaning,
+		arg.Translated,
+		arg.English,
+	)
+	var i TranslationCard
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.English,
+		&i.Meaning,
+		&i.Translated,
+		&i.SetID,
+		&i.Language,
+		&i.CreatorID,
+	)
+	return i, err
 }

@@ -5,8 +5,8 @@ type TranslatorTool interface {
 }
 
 type TranslatedWord struct {
-	English    string `json:"english"`
-	Translated string `json:"translated"`
-	Meaning    string `json:"meaning"`
-	Language   string `json:"language"`
+	EnglishWithTones string `json:"englishWithTones"`
+	Translated       string `json:"translated"`
+	Meaning          string `json:"meaning"`
+	Language         string `json:"language"`
 }

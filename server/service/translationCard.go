@@ -8,18 +8,20 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 )
 
 type TranslationCard struct {
 	conn    *pgxpool.Pool
 	context context.Context
+	logger  *zap.Logger
 }
 
-func NewTranslationService(p *pgxpool.Pool, c context.Context) *TranslationCard {
-	return &TranslationCard{conn: p, context: c}
+func NewTranslationService(p *pgxpool.Pool, c context.Context, l *zap.Logger) *TranslationCard {
+	return &TranslationCard{conn: p, context: c, logger: l}
 }
 
-func (s *TranslationCard) CreateNewTranslationCard(english string, language string) error {
+func (s *TranslationCard) CreateNewTranslationCard(userID string, english string, language string, setID int) error {
 	// Make call to translator
 	client := translator.NewChatGptClient()
 
@@ -35,14 +37,14 @@ func (s *TranslationCard) CreateNewTranslationCard(english string, language stri
 	// TODO: Add to specific user
 	store := db.New(s.conn)
 
-	uuidTemp, _ := uuid.Parse("f47c1a1b-2e71-4960-878d-cd70db13264e")
+	u, _ := uuid.Parse(userID)
 	p := db.CreateTranslationCardParams{
-		English:    translatedWord.English,
+		English:    translatedWord.EnglishWithTones,
 		Meaning:    translatedWord.Meaning,
 		Translated: translatedWord.Translated,
-		SetID:      1,
+		SetID:      int64(setID),
 		Language:   translatedWord.Language,
-		CreatorID:  pgtype.UUID{Bytes: uuidTemp, Valid: true},
+		CreatorID:  pgtype.UUID{Bytes: u, Valid: true},
 	}
 
 	// TODO: Handle translation card response
@@ -55,14 +57,14 @@ func (s *TranslationCard) CreateNewTranslationCard(english string, language stri
 	return nil
 }
 
-func (s *TranslationCard) RetrieveTransactionCards(userId string, setId int) ([]db.RetrieveTranslationCardsForSetRow, error) {
+func (s *TranslationCard) TranslationCards(userID string, setID int) ([]db.RetrieveTranslationCardsForSetRow, error) {
 	// Query database for required data
 	store := db.New(s.conn)
 
-	uuidTemp, _ := uuid.Parse("f47c1a1b-2e71-4960-878d-cd70db13264e")
+	u, _ := uuid.Parse(userID)
 	p := db.RetrieveTranslationCardsForSetParams{
-		SetID:     int64(setId),
-		CreatorID: pgtype.UUID{Bytes: uuidTemp, Valid: true},
+		SetID:     int64(setID),
+		CreatorID: pgtype.UUID{Bytes: u, Valid: true},
 	}
 
 	translationCards, err := store.RetrieveTranslationCardsForSet(s.context, p)
@@ -72,4 +74,42 @@ func (s *TranslationCard) RetrieveTransactionCards(userId string, setId int) ([]
 	}
 
 	return translationCards, nil
+}
+
+func (s *TranslationCard) UpdateTranslationCard(userID string, cardID int, english string, meaning string, translated string) error {
+	store := db.New(s.conn)
+
+	u, _ := uuid.Parse(userID)
+	p := db.UpdateTranslationCardParams{
+		ID:         int64(cardID),
+		CreatorID:  pgtype.UUID{Bytes: u, Valid: true},
+		English:    english,
+		Meaning:    meaning,
+		Translated: translated,
+	}
+
+	// TODO: Handle translation card response
+	_, err := store.UpdateTranslationCard(s.context, p)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *TranslationCard) DeleteTranslationCard(cardID int, userID string) error {
+	store := db.New(s.conn)
+	u, _ := uuid.Parse(userID)
+
+	p := db.DeleteTranslationCardParams{
+		ID:        int64(cardID),
+		CreatorID: pgtype.UUID{Bytes: u, Valid: true},
+	}
+
+	if err := store.DeleteTranslationCard(s.context, p); err != nil {
+		return err
+	}
+
+	return nil
 }

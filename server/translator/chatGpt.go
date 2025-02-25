@@ -91,8 +91,8 @@ func (c *ChatGpt) Translate(english string, language string) (*TranslatedWord, e
 	}
 
 	translated := &TranslatedWord{
-		English:  english,
-		Language: language,
+		EnglishWithTones: english,
+		Language:         language,
 	}
 
 	content := chatGptResponse.Choices[0].Message.Content
@@ -106,7 +106,7 @@ func (c *ChatGpt) Translate(english string, language string) (*TranslatedWord, e
 
 func newChatGptRequest(english string, language string) *chatGptRequest {
 	// Query specifics of GPT
-	roleDescription := "You are a professional translator. Please translate the word " + english + " to " + language + ". Return only the translated word in " + language + " and its meaning. If you can't do it return Null for all"
+	roleDescription := "You are a professional translator. Please translate the word " + english + " into " + language + " 1. The translated word in " + language + ".2. Its meaning in English. 3. The accented version of the word in English, referred to as englishWithTones.  If you cannot provide these, respond with Null for all."
 
 	messages := [2]*message{
 		{Role: "system", Content: roleDescription},
@@ -118,10 +118,11 @@ func newChatGptRequest(english string, language string) *chatGptRequest {
 		"schema": {
 			"type": "object",
 			"properties": {
+				"englishWithTones": {"type": "string"},
 				"translated": { "type": "string" },
 				"meaning": { "type": "string" }
 			},
-			"required": ["translated", "meaning"],
+			"required": ["translated", "meaning", "englishWithTones"],
 			"additionalProperties": false
 		},
 		"strict": true
