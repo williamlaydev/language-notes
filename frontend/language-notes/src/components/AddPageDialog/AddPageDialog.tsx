@@ -32,7 +32,7 @@ function AddPageDialog() {
         const {data, error} = await supabase.auth.getSession()
 
         if (error || !data.session) {
-            throw new Error("Error fetching session: " + error.message)
+            throw new Error("Error fetching session: " + (error?.message || ""))
         }
         const token = data?.session?.access_token || ""
 

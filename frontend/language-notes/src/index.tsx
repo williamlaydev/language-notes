@@ -4,7 +4,7 @@ import './index.css';
 import './output.css';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient, Session, SupabaseClient } from '@supabase/supabase-js';
 import { createContext, useEffect, useState } from 'react';
 import LoginPage from './pages/LoginPage';
 import BookCreationPage from './pages/BookCreationPage';
@@ -38,7 +38,7 @@ const App = () => {
 createRoot(document.getElementById('root')!).render(<App />);
 
 function ProtectedRoutes({ supabase, children }: { supabase: SupabaseClient; children: React.ReactNode }) {
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 

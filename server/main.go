@@ -16,8 +16,11 @@ import (
 )
 
 func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("error loading env file: %s", err)
+	// Toggle between prod here
+	if os.Getenv("APP_ENV") != "prod" {
+		if err := godotenv.Load(); err != nil {
+			log.Fatalf("error loading env file: %s", err)
+		}
 	}
 
 	if os.Getenv("OPEN_AI_KEY") == "" {

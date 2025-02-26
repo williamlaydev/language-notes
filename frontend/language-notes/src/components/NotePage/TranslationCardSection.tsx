@@ -13,7 +13,7 @@ import { deleteSet } from "@/api/set";
 type TranslationCardSectionProps = {
     setId: number
     isEditMode: boolean
-    resetSelectedSet: () => void
+    refreshFileExplorer: () => void
 }
 
 function TranslationCardSection(props: TranslationCardSectionProps) {
@@ -57,7 +57,7 @@ function TranslationCardSection(props: TranslationCardSectionProps) {
 
       const token = data.session.access_token || "";
       await deleteSet(setId, token)
-      props.resetSelectedSet()
+      props.refreshFileExplorer()
     }
 
     if (translationCards.length == 0) {

@@ -34,7 +34,7 @@ const createFileExplorerTree = async (supabase: any, bookId: string): Promise<Pa
 
         console.log(pages)
         // Fetch sets in parallel
-        const setsPromises = pages.map(async (page) => {
+        const setsPromises = pages.map(async (page: Page) => {
             const sets = await fetchSets(page.id, token);
             
             // Handle empty sets
