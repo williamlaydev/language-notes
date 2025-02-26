@@ -1,10 +1,3 @@
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from "@/components/ui/accordion";
-
 type TranslationCardProps = {
     english: string;
     meaning: string;

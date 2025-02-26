@@ -30,3 +30,8 @@ type Book = {
   name: string;
   language: string;
 }
+
+type Page = {
+  id: number;
+  name: string
+}

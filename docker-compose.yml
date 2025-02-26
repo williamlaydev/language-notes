@@ -1,0 +1,27 @@
+services:
+  server:
+    build:
+      context: ./server  # Path to Go server's Dockerfile
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./server/.env
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend/language-notes/  # Path to React app's Dockerfile
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/language-notes/.env
+    depends_on:
+      - server
+    networks:
+      - app-network
+
+networks:
+  app-network:

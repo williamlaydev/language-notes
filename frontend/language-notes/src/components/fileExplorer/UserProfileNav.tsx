@@ -20,10 +20,10 @@ function UserProfileNav() {
             const {data, error} = await supabase.auth.getSession()
 
             if (error || !data.session) {
-                throw new Error("Error fetching session: " + error.message)
+              throw new Error("Error fetching session: " + (error?.message || ""))
             }
 
-            let user = data.session.user.user_metadata
+            const user = data.session.user.user_metadata
             setUserData({
                 name: user.name,
                 imgSrc: user.picture

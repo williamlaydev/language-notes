@@ -5,7 +5,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useContext, useState } from "react"
+import { useContext } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { SupabaseContext } from ".."
@@ -51,7 +51,7 @@ function BookCreationPage() {
         const {data, error} = await supabase.auth.getSession()
 
         if (error || !data.session) {
-            throw new Error("Error fetching session: " + error.message)
+            throw new Error("Error fetching session: " + (error?.message || ""))
         }
         const token = data?.session?.access_token || ""
 

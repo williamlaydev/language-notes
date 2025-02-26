@@ -1,4 +1,4 @@
-import { ChevronRight, File, FilePlus, Folder, Link, MoreHorizontal, StarOff, Trash2 } from "lucide-react"
+import { ChevronRight, File, FilePlus, Folder, MoreHorizontal, Trash2 } from "lucide-react"
 import {
   Collapsible,
   CollapsibleContent,
@@ -35,7 +35,6 @@ import { createNewSet } from "@/api/set.ts";
 import { SupabaseContext } from "@/index.tsx";
 import useFileExplorerStore from "@/stores/useFileExplorerStore.ts";
 import { deletePage } from "@/api/page.ts";
-import { SupabaseClient } from "@supabase/supabase-js";
 
 type FileExplorerProps = {
   setSelectionCallbackFunction: (setId: number, setName: string) => void;
@@ -99,7 +98,7 @@ function PagesTree(props: PagesTreeProps) {
     const {data, error} = await supabase.auth.getSession()
     
     if (error || !data.session) {
-        throw new Error("Error fetching session: " + error.message)
+      throw new Error("Error fetching session: " + (error?.message || ""))
     }
     const token = data?.session?.access_token || ""
 

@@ -1,6 +1,6 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SupabaseContext } from "@/index";
-import { GoogleLogin } from "@react-oauth/google";
+import { GoogleCredentialResponse, GoogleLogin } from "@react-oauth/google";
 import { useContext } from "react";
 import { useNavigate } from "react-router";
 
@@ -9,11 +9,11 @@ function LoginPage() {
     
     const navigate = useNavigate();
 
-    const handleSignInWithGoogle = async (response) => {
+    const handleSignInWithGoogle = async (response: GoogleCredentialResponse) => {
         // TODO: Error handling
-        const { data, error } = await supabase.auth.signInWithIdToken({
+        const { error } = await supabase.auth.signInWithIdToken({
           provider: 'google',
-          token: response.credential,
+          token: response.credential || "",
         })
     
         if (error) {

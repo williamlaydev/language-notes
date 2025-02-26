@@ -41,13 +41,13 @@ function IncompleteTranslationCard(props: IncompleteTranslationCardProps) {
         
     // }
 
-    const handleEnter = async (e) => {
+    const handleEnter = async (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter" && translatedInfo.english) {
             try {
                 const {data, error} = await supabase.auth.getSession()
   
                 if (error || !data.session) {
-                throw new Error("Error fetching session: " + error.message)
+                    throw new Error("Error fetching session: " + (error?.message || ""))
                 }
             
                 const token = data?.session?.access_token || ""
